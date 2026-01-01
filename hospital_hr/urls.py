@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from hrms.views_admin import fix_user_accounts
 
 app_name = 'hospital_hr'
 
@@ -9,6 +10,9 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('access-denied/', views.access_denied, name='access_denied'),
+    
+    # Admin utility to fix user accounts
+    path('admin/fix-users/', fix_user_accounts, name='fix_users'),
     
     path('departments/', views.department_list, name='department_list'),
     path('departments/create/', views.department_create, name='department_create'),

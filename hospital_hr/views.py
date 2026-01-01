@@ -42,9 +42,15 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
+                # Clear any old messages before adding new one
+                storage = messages.get_messages(request)
+                storage.used = True
                 messages.success(request, f'Welcome back, {user.get_full_name()}!')
                 return redirect('hospital_hr:dashboard')
         else:
+            # Clear old messages before showing error
+            storage = messages.get_messages(request)
+            storage.used = True
             messages.error(request, 'Invalid username or password.')
     else:
         form = UserLoginForm()
