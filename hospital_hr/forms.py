@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import User, Department, Employee, Job, Application, LeaveRequest
+from .models import User, Department, Employee, Job, Application, LeaveRequest, Attendance
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -47,6 +47,12 @@ class EmployeeForm(forms.ModelForm):
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
     password = forms.CharField(widget=forms.PasswordInput(), required=False)
+    role = forms.ChoiceField(choices=User.ROLE_CHOICES, required=True)
+    set_as_dept_head = forms.BooleanField(
+        required=False,
+        label="Set as Department Head",
+        help_text="Make this employee the head of their assigned department"
+    )
     
     class Meta:
         model = Employee
@@ -84,12 +90,19 @@ class EmployeeForm(forms.ModelForm):
             self.fields['email'].initial = self.instance.user.email
             self.fields['first_name'].initial = self.instance.user.first_name
             self.fields['last_name'].initial = self.instance.user.last_name
+            self.fields['role'].initial = self.instance.user.role
             self.fields['password'].required = False
             self.fields['password'].help_text = "Leave blank to keep current password"
+            
+            # Check if this employee is currently a department head
+            if self.instance.department and self.instance.department.head == self.instance.user:
+                self.fields['set_as_dept_head'].initial = True
         
-        for field_name in ['username', 'email', 'first_name', 'last_name', 'password']:
+        for field_name in ['username', 'email', 'first_name', 'last_name', 'password', 'role']:
             if field_name in self.fields:
                 self.fields[field_name].widget.attrs['class'] = 'form-control'
+        
+        self.fields['set_as_dept_head'].widget.attrs['class'] = 'form-check-input'
 
 
 class JobForm(forms.ModelForm):
@@ -177,3 +190,55 @@ class LeaveApprovalForm(forms.ModelForm):
             ]),
             'rejection_reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+
+class AttendanceForm(forms.ModelForm):
+    class Meta:
+        model = Attendance
+        fields = ['status', 'shift', 'check_in_time', 'check_out_time', 'notes']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'shift': forms.Select(attrs={'class': 'form-control'}),
+            'check_in_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'check_out_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Optional notes...'}),
+        }
+
+
+class AttendanceFilterForm(forms.Form):
+    date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.filter(is_active=True),
+        required=False,
+        empty_label="All Departments",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    status = forms.ChoiceField(
+        choices=[('', 'All Status')] + list(Attendance.STATUS_CHOICES),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+
+class AttendanceReportForm(forms.Form):
+    start_date = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    end_date = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.filter(is_active=True),
+        required=False,
+        empty_label="All Departments",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    employee = forms.ModelChoiceField(
+        queryset=Employee.objects.filter(status='active'),
+        required=False,
+        empty_label="All Employees",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )

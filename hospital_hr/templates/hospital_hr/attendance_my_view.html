@@ -1,0 +1,227 @@
+{% extends 'hospital_hr/base.html' %}
+{% load static %}
+
+{% block title %}My Attendance - Amrita Hospital HRMS{% endblock %}
+
+{% block page_title %}My Attendance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Employee Info -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <div class="avatar bg-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                        <i class="bi bi-person-fill text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-1">{{ employee.get_full_name }}</h5>
+                        <p class="text-muted mb-0">{{ employee.employee_id }} | {{ employee.department.name|default:"No Department" }}</p>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <h6 class="mb-0 text-muted">{{ today|date:"l, F d, Y" }}</h6>
+                    <h4 class="mb-0" id="currentTime">{{ now|time:"H:i:s" }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Check In/Out Section -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body text-center py-5">
+            {% if today_attendance and today_attendance.check_in_time and today_attendance.check_out_time %}
+                <!-- Already checked out -->
+                <div class="mb-4">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3">Attendance Completed for Today</h3>
+                    <p class="text-muted">You have successfully marked your attendance for today.</p>
+                </div>
+                <div class="row justify-content-center g-3">
+                    <div class="col-md-3">
+                        <div class="card border-success">
+                            <div class="card-body">
+                                <small class="text-muted">Check In</small>
+                                <h4 class="mb-0 text-success">{{ today_attendance.check_in_time|time:"H:i" }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <small class="text-muted">Check Out</small>
+                                <h4 class="mb-0 text-danger">{{ today_attendance.check_out_time|time:"H:i" }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-primary">
+                            <div class="card-body">
+                                <small class="text-muted">Total Hours</small>
+                                <h4 class="mb-0 text-primary">{{ today_attendance.get_working_hours }} hrs</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% elif today_attendance and today_attendance.check_in_time %}
+                <!-- Checked in, waiting to check out -->
+                <div class="mb-4">
+                    <i class="bi bi-clock-fill text-primary" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3">You are currently checked in</h3>
+                    <p class="text-muted mb-0">Check-in time: <strong>{{ today_attendance.check_in_time|time:"H:i" }}</strong></p>
+                </div>
+                <form method="post" action="{% url 'hospital_hr:attendance_check_out' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-lg px-5 py-3">
+                        <i class="bi bi-box-arrow-right me-2" style="font-size: 1.5rem;"></i>
+                        <span style="font-size: 1.2rem;">CHECK OUT</span>
+                    </button>
+                </form>
+            {% else %}
+                <!-- Not checked in yet -->
+                <div class="mb-4">
+                    <i class="bi bi-calendar-check text-secondary" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3">Ready to start your day?</h3>
+                    <p class="text-muted">Click the button below to mark your attendance</p>
+                </div>
+                <form method="post" action="{% url 'hospital_hr:attendance_check_in' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-lg px-5 py-3">
+                        <i class="bi bi-box-arrow-in-right me-2" style="font-size: 1.5rem;"></i>
+                        <span style="font-size: 1.2rem;">CHECK IN</span>
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-2">
+            <div class="card border-0 bg-success text-white h-100">
+                <div class="card-body text-center py-3">
+                    <h3 class="mb-0">{{ stats.present }}</h3>
+                    <small>Present</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 bg-danger text-white h-100">
+                <div class="card-body text-center py-3">
+                    <h3 class="mb-0">{{ stats.absent }}</h3>
+                    <small>Absent</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 bg-warning text-dark h-100">
+                <div class="card-body text-center py-3">
+                    <h3 class="mb-0">{{ stats.late }}</h3>
+                    <small>Late</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 bg-info text-white h-100">
+                <div class="card-body text-center py-3">
+                    <h3 class="mb-0">{{ stats.half_day }}</h3>
+                    <small>Half Day</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 bg-secondary text-white h-100">
+                <div class="card-body text-center py-3">
+                    <h3 class="mb-0">{{ stats.on_leave }}</h3>
+                    <small>On Leave</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 bg-primary text-white h-100">
+                <div class="card-body text-center py-3">
+                    <h3 class="mb-0">{{ stats.total_working_days }}</h3>
+                    <small>Working Days</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Attendance History -->
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Attendance History (Last 30 Days)</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in attendance_records %}
+                        <tr>
+                            <td>{{ att.date|date:"M d, Y (D)" }}</td>
+                            <td>
+                                {% if att.status == 'present' %}
+                                    <span class="badge bg-success">Present</span>
+                                {% elif att.status == 'absent' %}
+                                    <span class="badge bg-danger">Absent</span>
+                                {% elif att.status == 'late' %}
+                                    <span class="badge bg-warning text-dark">Late</span>
+                                {% elif att.status == 'half_day' %}
+                                    <span class="badge bg-info">Half Day</span>
+                                {% elif att.status == 'on_leave' %}
+                                    <span class="badge bg-secondary">On Leave</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ att.check_in_time|time:"H:i"|default:"-" }}</td>
+                            <td>{{ att.check_out_time|time:"H:i"|default:"-" }}</td>
+                            <td>
+                                {% if att.get_working_hours %}
+                                    {{ att.get_working_hours }} hrs
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                No attendance records found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Update current time every second
+    function updateTime() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+        const timeElement = document.getElementById('currentTime');
+        if (timeElement) {
+            timeElement.textContent = timeStr;
+        }
+    }
+    
+    // Update time every second
+    setInterval(updateTime, 1000);
+    updateTime();
+</script>
+{% endblock %}

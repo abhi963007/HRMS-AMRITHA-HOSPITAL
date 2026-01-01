@@ -418,15 +418,24 @@ function openFormModal(url, title, size) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         
-        // Try to find the form card or form content
-        let formContent = doc.querySelector('.form-card .card-body') || 
-                          doc.querySelector('.card-body') ||
+        // Try to find the form card or form content - prioritize .form-card
+        let formContent = doc.querySelector('.form-card') || 
                           doc.querySelector('form') ||
-                          doc.querySelector('.modal-body') ||
-                          doc.body;
+                          doc.querySelector('.card-body') ||
+                          doc.querySelector('.modal-body');
         
         if (formContent) {
-            modalBody.innerHTML = formContent.innerHTML;
+            // If we found .form-card, extract just the card-body
+            if (formContent.classList.contains('form-card')) {
+                const cardBody = formContent.querySelector('.card-body');
+                if (cardBody) {
+                    modalBody.innerHTML = cardBody.innerHTML;
+                } else {
+                    modalBody.innerHTML = formContent.innerHTML;
+                }
+            } else {
+                modalBody.innerHTML = formContent.innerHTML;
+            }
             
             // Ensure form has proper styling
             const form = modalBody.querySelector('form');
@@ -486,51 +495,96 @@ function handleModalFormSubmit(e) {
         }
     })
     .then(response => {
-        if (response.redirected) {
-            // Success - close modal and refresh page
-            const modal = bootstrap.Modal.getInstance(document.getElementById('globalModal'));
-            if (modal) modal.hide();
-            showToast('Saved successfully!', 'success');
-            setTimeout(() => window.location.reload(), 500);
-            return null;
+        // Check if response is JSON (success response from server)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json().then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('globalModal'));
+                    if (modal) modal.hide();
+                    showToast(data.message || 'Saved successfully!', 'success');
+                    setTimeout(() => window.location.reload(), 500);
+                    return null;
+                }
+                return { json: data };
+            });
         }
-        return response.text();
+        
+        // Otherwise parse as HTML
+        return response.text().then(html => ({ html: html }));
     })
-    .then(html => {
-        if (!html) return;
+    .then(result => {
+        if (!result) return;
         
-        // Check if response contains validation errors
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        // Check for success redirect in meta tag or script
-        const redirectMeta = doc.querySelector('meta[http-equiv="refresh"]');
-        if (redirectMeta) {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('globalModal'));
-            if (modal) modal.hide();
-            showToast('Saved successfully!', 'success');
-            setTimeout(() => window.location.reload(), 500);
+        // Handle JSON response
+        if (result.json) {
+            showToast('Error: ' + (result.json.message || 'Form submission failed'), 'error');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
             return;
         }
         
-        // Update form with validation errors
+        // Handle HTML response
+        const html = result.html;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Form has validation errors - update the modal with the new form
         const modalBody = document.getElementById('globalModalBody');
-        let formContent = doc.querySelector('.form-card .card-body') || 
-                          doc.querySelector('.card-body') ||
-                          doc.querySelector('form');
+        
+        // Try to find the form content in order of specificity
+        let formContent = doc.querySelector('.form-card');
         
         if (formContent) {
-            modalBody.innerHTML = formContent.innerHTML;
+            // Extract the card-body from form-card
+            const cardBody = formContent.querySelector('.card-body');
+            if (cardBody) {
+                modalBody.innerHTML = cardBody.innerHTML;
+            } else {
+                modalBody.innerHTML = formContent.innerHTML;
+            }
             const newForm = modalBody.querySelector('form');
             if (newForm) {
                 newForm.addEventListener('submit', handleModalFormSubmit);
+                
+                // Re-apply form control classes
+                newForm.querySelectorAll('input, select, textarea').forEach(el => {
+                    if (!el.classList.contains('form-control') && 
+                        !el.classList.contains('form-select') &&
+                        !el.classList.contains('form-check-input') &&
+                        el.type !== 'hidden' &&
+                        el.type !== 'submit') {
+                        if (el.tagName === 'SELECT') {
+                            el.classList.add('form-select');
+                        } else if (el.type === 'checkbox' || el.type === 'radio') {
+                            el.classList.add('form-check-input');
+                        } else {
+                            el.classList.add('form-control');
+                        }
+                    }
+                });
             }
-        }
-        
-        // Reset button state
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnText;
+            
+            // Show error message if there are form errors
+            const errorFields = modalBody.querySelectorAll('.is-invalid, .text-danger, .errorlist');
+            if (errorFields.length > 0) {
+                showToast('Please fix the errors in the form', 'error');
+            }
+            
+            // Reset button state for the new form
+            const newSubmitBtn = modalBody.querySelector('[type="submit"]');
+            if (newSubmitBtn) {
+                newSubmitBtn.disabled = false;
+            }
+        } else {
+            // No form content found - might be a success redirect
+            // Close modal and reload
+            const modal = bootstrap.Modal.getInstance(document.getElementById('globalModal'));
+            if (modal) modal.hide();
+            showToast('Saved successfully!', 'success');
+            setTimeout(() => window.location.reload(), 500);
         }
     })
     .catch(error => {

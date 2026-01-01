@@ -5,15 +5,21 @@ from django.contrib import messages
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from datetime import datetime, timedelta
-from .models import User, Department, Employee, Job, Application, LeaveRequest
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_POST
+import csv
+import json
+from .models import User, Department, Employee, Job, Application, LeaveRequest, Attendance
 from .forms import (
     UserLoginForm, UserRegistrationForm, DepartmentForm, EmployeeForm,
-    JobForm, ApplicationForm, ApplicationReviewForm, LeaveRequestForm, LeaveApprovalForm
+    JobForm, ApplicationForm, ApplicationReviewForm, LeaveRequestForm, LeaveApprovalForm,
+    AttendanceForm, AttendanceFilterForm, AttendanceReportForm
 )
 from .decorators import (
     role_required, admin_required, hr_or_admin_required,
     dept_head_or_admin_required, staff_required
 )
+from .ai_assistant import HRQueryProcessor, GroqAIClient
 
 
 def landing_view(request):
@@ -80,33 +86,60 @@ def dashboard_view(request):
 
 
 def admin_dashboard(request):
+    from django.core.paginator import Paginator
+    
     total_departments = Department.objects.filter(is_active=True).count()
     total_employees = Employee.objects.filter(status='active').count()
     total_jobs = Job.objects.filter(status='open').count()
     total_applications = Application.objects.filter(status='submitted').count()
-    
-    employees_by_category = Employee.objects.filter(status='active').values('category').annotate(
-        count=Count('id')
-    ).order_by('-count')
-    
-    employees_by_department = Employee.objects.filter(status='active').values(
-        'department__name'
-    ).annotate(count=Count('id')).order_by('-count')[:5]
-    
     employees_on_leave = Employee.objects.filter(status='on_leave').count()
     
-    recent_employees = Employee.objects.filter(status='active').select_related('user', 'department')[:5]
-    pending_leaves = LeaveRequest.objects.filter(status='pending')[:5]
-    recent_applications = Application.objects.filter(status='submitted').select_related('job')[:5]
+    # Pagination for Staff by Category
+    category_page = request.GET.get('category_page', 1)
+    employees_by_category_list = Employee.objects.filter(status='active').values('category').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    category_paginator = Paginator(employees_by_category_list, 5)
+    employees_by_category = category_paginator.get_page(category_page)
+    
+    # Pagination for Top Departments
+    dept_page = request.GET.get('dept_page', 1)
+    employees_by_department_list = Employee.objects.filter(status='active').values(
+        'department__name'
+    ).annotate(count=Count('id')).order_by('-count')
+    dept_paginator = Paginator(employees_by_department_list, 5)
+    employees_by_department = dept_paginator.get_page(dept_page)
+    
+    # Calculate width percentage for each department
+    for item in employees_by_department:
+        item['width_percentage'] = (item['count'] / total_employees) * 100 if total_employees > 0 else 0
+    
+    # Pagination for Recent Employees
+    emp_page = request.GET.get('emp_page', 1)
+    recent_employees_list = Employee.objects.filter(status='active').select_related('user', 'department').order_by('-created_at')
+    emp_paginator = Paginator(recent_employees_list, 5)
+    recent_employees = emp_paginator.get_page(emp_page)
+    
+    # Pagination for Pending Leave Requests
+    leave_page = request.GET.get('leave_page', 1)
+    pending_leaves_list = LeaveRequest.objects.filter(status='pending').select_related('employee__user').order_by('-created_at')
+    leave_paginator = Paginator(pending_leaves_list, 5)
+    pending_leaves = leave_paginator.get_page(leave_page)
+    
+    # Pagination for Recent Applications
+    app_page = request.GET.get('app_page', 1)
+    recent_applications_list = Application.objects.filter(status='submitted').select_related('job').order_by('-applied_date')
+    app_paginator = Paginator(recent_applications_list, 5)
+    recent_applications = app_paginator.get_page(app_page)
     
     context = {
         'total_departments': total_departments,
         'total_employees': total_employees,
         'total_jobs': total_jobs,
         'total_applications': total_applications,
+        'employees_on_leave': employees_on_leave,
         'employees_by_category': employees_by_category,
         'employees_by_department': employees_by_department,
-        'employees_on_leave': employees_on_leave,
         'recent_employees': recent_employees,
         'pending_leaves': pending_leaves,
         'recent_applications': recent_applications,
@@ -183,10 +216,14 @@ def staff_dashboard(request):
         employee = None
     
     if employee:
-        my_leaves = LeaveRequest.objects.filter(employee=employee).order_by('-created_at')[:10]
-        approved_leaves = my_leaves.filter(status='approved').count()
-        pending_leaves = my_leaves.filter(status='pending').count()
-        rejected_leaves = my_leaves.filter(status='rejected').count()
+        # Get all leaves for counting
+        all_leaves = LeaveRequest.objects.filter(employee=employee)
+        approved_leaves = all_leaves.filter(status='approved').count()
+        pending_leaves = all_leaves.filter(status='pending').count()
+        rejected_leaves = all_leaves.filter(status='rejected').count()
+        
+        # Get recent leaves for display (slice at the end)
+        my_leaves = all_leaves.order_by('-created_at')[:10]
     else:
         my_leaves = []
         approved_leaves = 0
@@ -309,7 +346,7 @@ def employee_create(request):
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name'],
                 password=form.cleaned_data.get('password', 'temppass123'),
-                role='staff'
+                role=form.cleaned_data['role']
             )
             
             employee = form.save(commit=False)
@@ -318,7 +355,14 @@ def employee_create(request):
             user.save()
             employee.save()
             
-            messages.success(request, 'Employee created successfully!')
+            # Handle department head assignment
+            if form.cleaned_data.get('set_as_dept_head') and employee.department:
+                employee.department.head = user
+                employee.department.save()
+                messages.success(request, f'Employee created and set as head of {employee.department.name}!')
+            else:
+                messages.success(request, 'Employee created successfully!')
+            
             return redirect('hospital_hr:employee_list')
     else:
         form = EmployeeForm()
@@ -342,6 +386,7 @@ def employee_edit(request, pk):
             user.email = form.cleaned_data['email']
             user.first_name = form.cleaned_data['first_name']
             user.last_name = form.cleaned_data['last_name']
+            user.role = form.cleaned_data['role']
             
             if form.cleaned_data.get('password'):
                 user.set_password(form.cleaned_data['password'])
@@ -353,7 +398,28 @@ def employee_edit(request, pk):
             user.save()
             employee.save()
             
-            messages.success(request, 'Employee updated successfully!')
+            # Handle department head assignment
+            success_msg = 'Employee updated successfully!'
+            if employee.department:
+                if form.cleaned_data.get('set_as_dept_head'):
+                    # Set this employee as department head
+                    employee.department.head = user
+                    employee.department.save()
+                    success_msg = f'Employee updated and set as head of {employee.department.name}!'
+                else:
+                    # Remove as department head if they were previously
+                    if employee.department.head == user:
+                        employee.department.head = None
+                        employee.department.save()
+                        success_msg = 'Employee updated and removed as department head!'
+            
+            messages.success(request, success_msg)
+            
+            # Check if this is an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({'success': True, 'message': success_msg})
+            
             return redirect('hospital_hr:employee_list')
     else:
         form = EmployeeForm(instance=employee, instance_user=employee.user)
@@ -655,3 +721,483 @@ def leave_request_approve(request, pk):
 @login_required
 def access_denied(request):
     return render(request, 'hospital_hr/access_denied.html')
+
+
+# ============================================
+# ATTENDANCE MANAGEMENT VIEWS
+# ============================================
+
+@login_required
+@hr_or_admin_required
+def attendance_dashboard(request):
+    """HR/Admin attendance dashboard - mark and view attendance for all departments"""
+    today = timezone.now().date()
+    selected_date = request.GET.get('date', today.isoformat())
+    selected_department = request.GET.get('department', '')
+    
+    try:
+        selected_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
+    except ValueError:
+        selected_date = today
+    
+    departments = Department.objects.filter(is_active=True)
+    
+    employees = Employee.objects.filter(status='active').select_related('user', 'department')
+    if selected_department:
+        employees = employees.filter(department_id=selected_department)
+    
+    employee_attendance = []
+    for emp in employees:
+        attendance = Attendance.objects.filter(employee=emp, date=selected_date).first()
+        employee_attendance.append({
+            'employee': emp,
+            'attendance': attendance,
+            'form': AttendanceForm(instance=attendance) if attendance else AttendanceForm(initial={'shift': emp.shift})
+        })
+    
+    stats = {
+        'total': employees.count(),
+        'present': Attendance.objects.filter(date=selected_date, status='present', employee__in=employees).count(),
+        'absent': Attendance.objects.filter(date=selected_date, status='absent', employee__in=employees).count(),
+        'late': Attendance.objects.filter(date=selected_date, status='late', employee__in=employees).count(),
+        'half_day': Attendance.objects.filter(date=selected_date, status='half_day', employee__in=employees).count(),
+        'on_leave': Attendance.objects.filter(date=selected_date, status='on_leave', employee__in=employees).count(),
+    }
+    stats['unmarked'] = stats['total'] - (stats['present'] + stats['absent'] + stats['late'] + stats['half_day'] + stats['on_leave'])
+    
+    context = {
+        'employee_attendance': employee_attendance,
+        'departments': departments,
+        'selected_date': selected_date,
+        'selected_department': selected_department,
+        'stats': stats,
+        'today': today,
+    }
+    return render(request, 'hospital_hr/attendance_dashboard.html', context)
+
+
+@login_required
+@hr_or_admin_required
+def attendance_mark(request, employee_id):
+    """Mark or update attendance for a single employee (AJAX/Modal)"""
+    employee = get_object_or_404(Employee, pk=employee_id)
+    date_str = request.GET.get('date', timezone.now().date().isoformat())
+    
+    try:
+        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        date = timezone.now().date()
+    
+    attendance, created = Attendance.objects.get_or_create(
+        employee=employee,
+        date=date,
+        defaults={
+            'department': employee.department,
+            'shift': employee.shift,
+            'marked_by': request.user
+        }
+    )
+    
+    if request.method == 'POST':
+        form = AttendanceForm(request.POST, instance=attendance)
+        if form.is_valid():
+            att = form.save(commit=False)
+            att.marked_by = request.user
+            att.department = employee.department
+            att.save()
+            messages.success(request, f'Attendance marked for {employee.get_full_name()}')
+            return redirect(f"{request.META.get('HTTP_REFERER', 'hospital_hr:attendance_dashboard')}?date={date}")
+    else:
+        form = AttendanceForm(instance=attendance)
+    
+    context = {
+        'form': form,
+        'employee': employee,
+        'date': date,
+        'attendance': attendance,
+    }
+    return render(request, 'hospital_hr/attendance_mark_modal.html', context)
+
+
+@login_required
+@hr_or_admin_required
+def attendance_bulk_mark(request):
+    """Bulk mark attendance for multiple employees"""
+    if request.method == 'POST':
+        date_str = request.POST.get('date', timezone.now().date().isoformat())
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            date = timezone.now().date()
+        
+        employee_ids = request.POST.getlist('employee_ids')
+        status = request.POST.get('status', 'present')
+        shift = request.POST.get('shift', 'general')
+        
+        count = 0
+        for emp_id in employee_ids:
+            try:
+                employee = Employee.objects.get(pk=emp_id)
+                attendance, created = Attendance.objects.update_or_create(
+                    employee=employee,
+                    date=date,
+                    defaults={
+                        'department': employee.department,
+                        'shift': shift,
+                        'status': status,
+                        'marked_by': request.user
+                    }
+                )
+                count += 1
+            except Employee.DoesNotExist:
+                continue
+        
+        messages.success(request, f'Attendance marked for {count} employees')
+        return redirect(f"hospital_hr:attendance_dashboard?date={date}")
+    
+    return redirect('hospital_hr:attendance_dashboard')
+
+
+@login_required
+@dept_head_or_admin_required
+def attendance_department(request):
+    """Department Head view - READ ONLY - only see their department"""
+    today = timezone.now().date()
+    selected_date = request.GET.get('date', today.isoformat())
+    
+    try:
+        selected_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
+    except ValueError:
+        selected_date = today
+    
+    user_department = None
+    if request.user.role == 'dept_head':
+        user_department = Department.objects.filter(head=request.user).first()
+        if not user_department:
+            messages.error(request, 'You are not assigned as head of any department.')
+            return redirect('hospital_hr:dashboard')
+        employees = Employee.objects.filter(department=user_department, status='active')
+    else:
+        employees = Employee.objects.filter(status='active')
+        user_department = Department.objects.filter(is_active=True).first()
+    
+    employee_attendance = []
+    for emp in employees:
+        attendance = Attendance.objects.filter(employee=emp, date=selected_date).first()
+        employee_attendance.append({
+            'employee': emp,
+            'attendance': attendance,
+        })
+    
+    stats = {
+        'total': employees.count(),
+        'present': Attendance.objects.filter(date=selected_date, status='present', employee__in=employees).count(),
+        'absent': Attendance.objects.filter(date=selected_date, status='absent', employee__in=employees).count(),
+        'late': Attendance.objects.filter(date=selected_date, status='late', employee__in=employees).count(),
+        'half_day': Attendance.objects.filter(date=selected_date, status='half_day', employee__in=employees).count(),
+        'on_leave': Attendance.objects.filter(date=selected_date, status='on_leave', employee__in=employees).count(),
+    }
+    stats['unmarked'] = stats['total'] - (stats['present'] + stats['absent'] + stats['late'] + stats['half_day'] + stats['on_leave'])
+    
+    context = {
+        'employee_attendance': employee_attendance,
+        'department': user_department,
+        'selected_date': selected_date,
+        'stats': stats,
+        'today': today,
+        'is_read_only': request.user.role == 'dept_head',
+    }
+    return render(request, 'hospital_hr/attendance_department.html', context)
+
+
+
+
+@login_required
+def attendance_my_view(request):
+    """Staff mark their own attendance with Check In/Check Out"""
+    try:
+        employee = request.user.employee_profile
+    except Employee.DoesNotExist:
+        messages.error(request, 'No employee profile found for your account.')
+        return redirect('hospital_hr:dashboard')
+    
+    today = timezone.now().date()
+    now = timezone.now()
+    
+    # Get today's attendance
+    today_attendance = Attendance.objects.filter(employee=employee, date=today).first()
+    
+    # Get recent attendance (last 30 days)
+    start_date = today - timedelta(days=30)
+    attendance_records = Attendance.objects.filter(
+        employee=employee,
+        date__gte=start_date,
+        date__lte=today
+    ).order_by('-date')
+    
+    stats = {
+        'present': attendance_records.filter(status='present').count(),
+        'absent': attendance_records.filter(status='absent').count(),
+        'late': attendance_records.filter(status='late').count(),
+        'half_day': attendance_records.filter(status='half_day').count(),
+        'on_leave': attendance_records.filter(status='on_leave').count(),
+    }
+    stats['total_working_days'] = stats['present'] + stats['late'] + stats['half_day']
+    
+    context = {
+        'employee': employee,
+        'today_attendance': today_attendance,
+        'attendance_records': attendance_records[:10],
+        'stats': stats,
+        'today': today,
+        'now': now,
+    }
+    return render(request, 'hospital_hr/attendance_my_view.html', context)
+
+
+@login_required
+def attendance_check_in(request):
+    """Staff check in"""
+    try:
+        employee = request.user.employee_profile
+    except Employee.DoesNotExist:
+        messages.error(request, 'No employee profile found for your account.')
+        return redirect('hospital_hr:dashboard')
+    
+    today = timezone.now().date()
+    now = timezone.now()
+    
+    # Check if already checked in today
+    attendance = Attendance.objects.filter(employee=employee, date=today).first()
+    if attendance and attendance.check_in_time:
+        messages.warning(request, 'You have already checked in today.')
+        return redirect('hospital_hr:attendance_my_view')
+    
+    # Create or update attendance
+    if not attendance:
+        attendance = Attendance.objects.create(
+            employee=employee,
+            department=employee.department,
+            date=today,
+            shift=employee.shift,
+            check_in_time=now.time(),
+            status='present',
+            marked_by=request.user
+        )
+        messages.success(request, f'Checked in successfully at {now.strftime("%H:%M")}')
+    else:
+        attendance.check_in_time = now.time()
+        attendance.status = 'present'
+        attendance.save()
+        messages.success(request, f'Checked in successfully at {now.strftime("%H:%M")}')
+    
+    return redirect('hospital_hr:attendance_my_view')
+
+
+@login_required
+def attendance_check_out(request):
+    """Staff check out"""
+    try:
+        employee = request.user.employee_profile
+    except Employee.DoesNotExist:
+        messages.error(request, 'No employee profile found for your account.')
+        return redirect('hospital_hr:dashboard')
+    
+    today = timezone.now().date()
+    now = timezone.now()
+    
+    # Get today's attendance
+    attendance = Attendance.objects.filter(employee=employee, date=today).first()
+    if not attendance or not attendance.check_in_time:
+        messages.error(request, 'You must check in first before checking out.')
+        return redirect('hospital_hr:attendance_my_view')
+    
+    if attendance.check_out_time:
+        messages.warning(request, 'You have already checked out today.')
+        return redirect('hospital_hr:attendance_my_view')
+    
+    # Update check out time
+    attendance.check_out_time = now.time()
+    attendance.save()
+    messages.success(request, f'Checked out successfully at {now.strftime("%H:%M")}')
+    
+    return redirect('hospital_hr:attendance_my_view')
+
+
+@login_required
+@hr_or_admin_required
+def attendance_report(request):
+    """Attendance reports with filters and export"""
+    today = timezone.now().date()
+    start_date = request.GET.get('start_date', (today - timedelta(days=30)).isoformat())
+    end_date = request.GET.get('end_date', today.isoformat())
+    department_id = request.GET.get('department', '')
+    employee_id = request.GET.get('employee', '')
+    
+    try:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    except ValueError:
+        start_date = today - timedelta(days=30)
+        end_date = today
+    
+    attendance_qs = Attendance.objects.filter(date__gte=start_date, date__lte=end_date)
+    
+    if department_id:
+        attendance_qs = attendance_qs.filter(department_id=department_id)
+    if employee_id:
+        attendance_qs = attendance_qs.filter(employee_id=employee_id)
+    
+    attendance_qs = attendance_qs.select_related('employee', 'employee__user', 'department', 'marked_by')
+    
+    stats = {
+        'total_records': attendance_qs.count(),
+        'present': attendance_qs.filter(status='present').count(),
+        'absent': attendance_qs.filter(status='absent').count(),
+        'late': attendance_qs.filter(status='late').count(),
+        'half_day': attendance_qs.filter(status='half_day').count(),
+        'on_leave': attendance_qs.filter(status='on_leave').count(),
+    }
+    
+    if stats['total_records'] > 0:
+        stats['attendance_rate'] = round((stats['present'] + stats['late'] + stats['half_day']) / stats['total_records'] * 100, 1)
+    else:
+        stats['attendance_rate'] = 0
+    
+    dept_stats = attendance_qs.values('department__name').annotate(
+        total=Count('id'),
+        present=Count('id', filter=Q(status='present')),
+        absent=Count('id', filter=Q(status='absent')),
+        late=Count('id', filter=Q(status='late')),
+    ).order_by('department__name')
+    
+    form = AttendanceReportForm(initial={
+        'start_date': start_date,
+        'end_date': end_date,
+        'department': department_id if department_id else None,
+        'employee': employee_id if employee_id else None,
+    })
+    
+    context = {
+        'attendance_records': attendance_qs.order_by('-date', 'employee__user__first_name')[:500],
+        'stats': stats,
+        'dept_stats': dept_stats,
+        'form': form,
+        'start_date': start_date,
+        'end_date': end_date,
+        'departments': Department.objects.filter(is_active=True),
+    }
+    return render(request, 'hospital_hr/attendance_report.html', context)
+
+
+@login_required
+@hr_or_admin_required
+def attendance_export_csv(request):
+    """Export attendance data to CSV"""
+    start_date = request.GET.get('start_date', (timezone.now().date() - timedelta(days=30)).isoformat())
+    end_date = request.GET.get('end_date', timezone.now().date().isoformat())
+    department_id = request.GET.get('department', '')
+    
+    try:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    except ValueError:
+        start_date = timezone.now().date() - timedelta(days=30)
+        end_date = timezone.now().date()
+    
+    attendance_qs = Attendance.objects.filter(
+        date__gte=start_date,
+        date__lte=end_date
+    ).select_related('employee', 'employee__user', 'department', 'marked_by')
+    
+    if department_id:
+        attendance_qs = attendance_qs.filter(department_id=department_id)
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="attendance_{start_date}_{end_date}.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow([
+        'Date', 'Employee ID', 'Employee Name', 'Department', 'Shift',
+        'Status', 'Check In', 'Check Out', 'Working Hours', 'Marked By', 'Notes'
+    ])
+    
+    for att in attendance_qs.order_by('date', 'employee__user__first_name'):
+        writer.writerow([
+            att.date.strftime('%Y-%m-%d'),
+            att.employee.employee_id,
+            att.employee.get_full_name(),
+            att.department.name if att.department else '',
+            att.get_shift_display(),
+            att.get_status_display(),
+            att.check_in_time.strftime('%H:%M') if att.check_in_time else '',
+            att.check_out_time.strftime('%H:%M') if att.check_out_time else '',
+            att.get_working_hours(),
+            att.marked_by.get_full_name() if att.marked_by else '',
+            att.notes,
+        ])
+    
+    return response
+
+
+# =============================================================================
+# AI ASSISTANT VIEWS
+# =============================================================================
+
+@login_required
+@hr_or_admin_required
+def ai_assistant_view(request):
+    """Main AI Assistant chat interface - HR/Admin only"""
+    context = {
+        'suggested_queries': [
+            "How many employees are on leave today?",
+            "Show attendance summary for today",
+            "Which department has the most absentees?",
+            "How many job applications are pending?",
+            "List all open positions",
+            "Show pending leave requests",
+        ]
+    }
+    return render(request, 'hospital_hr/ai_assistant.html', context)
+
+
+@login_required
+@hr_or_admin_required
+@require_POST
+def ai_assistant_query(request):
+    """Process AI Assistant queries via AJAX - HR/Admin only"""
+    try:
+        data = json.loads(request.body)
+        query = data.get('query', '').strip()
+        
+        if not query:
+            return JsonResponse({
+                'success': False,
+                'error': 'Please enter a question.'
+            })
+        
+        # Process the query using RAG
+        processor = HRQueryProcessor(request.user)
+        query_result = processor.process_query(query)
+        
+        # Generate AI response
+        ai_client = GroqAIClient()
+        response_text = ai_client.generate_response(query, query_result['context'])
+        
+        return JsonResponse({
+            'success': True,
+            'response': response_text,
+            'query_type': query_result['query_type'],
+            'timestamp': query_result['timestamp']
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid request format.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'An error occurred: {str(e)}'
+        })

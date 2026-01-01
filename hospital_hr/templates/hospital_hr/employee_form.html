@@ -43,6 +43,13 @@
                                 <input type="text" name="last_name" id="id_last_name" class="form-control" value="{{ form.last_name.value|default:'' }}" required>
                             </div>
                             <div class="col-md-6">
+                                <label for="id_role" class="form-label">User Role *</label>
+                                {{ form.role }}
+                                {% if form.role.errors %}
+                                <div class="text-danger small mt-1">{{ form.role.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
                                 <label for="id_password" class="form-label">Password {% if action == 'Create' %}*{% endif %}</label>
                                 <input type="password" name="password" id="id_password" class="form-control" {% if action == 'Create' %}required{% endif %}>
                                 {% if action == 'Edit' %}
@@ -89,6 +96,24 @@
                             <div class="col-md-4">
                                 <label for="id_status" class="form-label">Status</label>
                                 {{ form.status }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h6 class="form-section-title">Department Head Assignment</h6>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="form-check">
+                                    {{ form.set_as_dept_head }}
+                                    <label class="form-check-label" for="id_set_as_dept_head">
+                                        {{ form.set_as_dept_head.label }}
+                                    </label>
+                                    <div class="form-text">{{ form.set_as_dept_head.help_text }}</div>
+                                </div>
+                                {% if form.set_as_dept_head.errors %}
+                                <div class="text-danger small mt-1">{{ form.set_as_dept_head.errors.0 }}</div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

@@ -41,4 +41,19 @@ urlpatterns = [
     path('leave-requests/', views.leave_request_list, name='leave_request_list'),
     path('leave-requests/create/', views.leave_request_create, name='leave_request_create'),
     path('leave-requests/<int:pk>/approve/', views.leave_request_approve, name='leave_request_approve'),
+    
+    # Attendance Management
+    path('attendance/', views.attendance_dashboard, name='attendance_dashboard'),
+    path('attendance/mark/<int:employee_id>/', views.attendance_mark, name='attendance_mark'),
+    path('attendance/bulk-mark/', views.attendance_bulk_mark, name='attendance_bulk_mark'),
+    path('attendance/department/', views.attendance_department, name='attendance_department'),
+    path('attendance/my/', views.attendance_my_view, name='attendance_my_view'),
+    path('attendance/check-in/', views.attendance_check_in, name='attendance_check_in'),
+    path('attendance/check-out/', views.attendance_check_out, name='attendance_check_out'),
+    path('attendance/report/', views.attendance_report, name='attendance_report'),
+    path('attendance/export/', views.attendance_export_csv, name='attendance_export_csv'),
+    
+    # AI Assistant
+    path('ai-assistant/', views.ai_assistant_view, name='ai_assistant'),
+    path('ai-assistant/query/', views.ai_assistant_query, name='ai_assistant_query'),
 ]
