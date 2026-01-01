@@ -1,0 +1,168 @@
+{% extends 'hospital_hr/base.html' %}
+{% load static %}
+
+{% block title %}Department Dashboard - Amrita Hospital HRMS{% endblock %}
+{% block page_title %}Department Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-content">
+    {% if department %}
+    <!-- Department Info -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-4">
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                    <i class="bi bi-building fs-3"></i>
+                </div>
+                <div>
+                    <h4 class="mb-1">{{ department.name }}</h4>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-geo-alt me-1"></i>{{ department.get_location_display }}
+                        {% if department.phone %}<span class="mx-2">|</span><i class="bi bi-telephone me-1"></i>{{ department.phone }}{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Metric Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="metric-card primary">
+                <div class="metric-card-header">
+                    <div class="metric-icon primary">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                </div>
+                <div class="metric-value">{{ total_dept_staff }}</div>
+                <div class="metric-label">Total Staff</div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6">
+            <div class="metric-card success">
+                <div class="metric-card-header">
+                    <div class="metric-icon success">
+                        <i class="bi bi-person-check-fill"></i>
+                    </div>
+                </div>
+                <div class="metric-value">{{ on_duty }}</div>
+                <div class="metric-label">On Duty</div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6">
+            <div class="metric-card warning">
+                <div class="metric-card-header">
+                    <div class="metric-icon warning">
+                        <i class="bi bi-calendar-x"></i>
+                    </div>
+                </div>
+                <div class="metric-value">{{ on_leave }}</div>
+                <div class="metric-label">On Leave</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tables Row -->
+    <div class="row g-4">
+        <!-- Department Staff -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Department Staff</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Designation</th>
+                                    <th>Shift</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for emp in dept_employees %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 12px;">
+                                                {{ emp.user.first_name|slice:":1" }}{{ emp.user.last_name|slice:":1" }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ emp.user.get_full_name }}</div>
+                                                <small class="text-muted">{{ emp.employee_id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ emp.designation }}</td>
+                                    <td>{{ emp.get_shift_display }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ emp.status }}">{{ emp.get_status_display }}</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No staff in this department</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pending Leave Requests -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Pending Leave Requests</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for leave in pending_leaves %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <div class="fw-medium">{{ leave.employee.user.get_full_name }}</div>
+                                    <small class="text-muted">{{ leave.get_leave_type_display }}</small>
+                                </div>
+                                <span class="badge bg-warning text-dark">{{ leave.total_days }}d</span>
+                            </div>
+                            <div class="small text-muted mb-2">
+                                {{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary w-100" data-modal-url="{% url 'hospital_hr:leave_request_approve' leave.pk %}" data-modal-title="Review Leave Request" data-modal-size="lg">
+                                Review Request
+                            </button>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-calendar-check fs-1 d-block mb-2"></i>
+                            No pending requests
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- No Department Assigned -->
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <div class="empty-state-icon mx-auto mb-4">
+                <i class="bi bi-building"></i>
+            </div>
+            <h4>No Department Assigned</h4>
+            <p class="text-muted">You are not currently assigned as head of any department.</p>
+            <p class="text-muted">Please contact the administrator to get assigned to a department.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

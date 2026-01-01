@@ -1,0 +1,111 @@
+{% extends 'hospital_hr/base.html' %}
+{% load static %}
+
+{% block title %}Applications - Amrita Hospital HRMS{% endblock %}
+{% block page_title %}Job Applications{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="table-header">
+        <h5 class="table-title">All Applications</h5>
+        <div class="table-actions">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" class="table-search" data-table="applicationsTable" placeholder="Search applications...">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="px-4 py-3 border-bottom bg-light">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small text-muted">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All Status</option>
+                    <option value="submitted" {% if request.GET.status == 'submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="under_review" {% if request.GET.status == 'under_review' %}selected{% endif %}>Under Review</option>
+                    <option value="shortlisted" {% if request.GET.status == 'shortlisted' %}selected{% endif %}>Shortlisted</option>
+                    <option value="interview_scheduled" {% if request.GET.status == 'interview_scheduled' %}selected{% endif %}>Interview Scheduled</option>
+                    <option value="selected" {% if request.GET.status == 'selected' %}selected{% endif %}>Selected</option>
+                    <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-muted">Job Position</label>
+                <select name="job" class="form-select form-select-sm">
+                    <option value="">All Positions</option>
+                    {% for job in jobs %}
+                    <option value="{{ job.pk }}" {% if request.GET.job == job.pk|stringformat:"i" %}selected{% endif %}>{{ job.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-sm btn-secondary w-100">
+                    <i class="bi bi-funnel me-1"></i>Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover" id="applicationsTable">
+            <thead>
+                <tr>
+                    <th>Applicant</th>
+                    <th>Position</th>
+                    <th>Experience</th>
+                    <th>Qualification</th>
+                    <th>Applied</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary d-flex align-items-center justify-content-center fw-medium" style="width: 40px; height: 40px; font-size: 14px;">
+                                {{ app.applicant_name|slice:":2"|upper }}
+                            </div>
+                            <div>
+                                <div class="fw-medium">{{ app.applicant_name }}</div>
+                                <small class="text-muted">{{ app.email }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="fw-medium">{{ app.job.title }}</div>
+                        <small class="text-muted">{{ app.job.department.name }}</small>
+                    </td>
+                    <td>{{ app.experience_years }} year{{ app.experience_years|pluralize }}</td>
+                    <td>{{ app.qualification }}</td>
+                    <td>{{ app.applied_date|date:"M d, Y" }}</td>
+                    <td>
+                        <span class="badge badge-{{ app.status }}">{{ app.get_status_display }}</span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-modal-url="{% url 'hospital_hr:application_detail' app.pk %}" data-modal-title="Review Application" data-modal-size="xl">
+                            <i class="bi bi-eye me-1"></i>Review
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="bi bi-file-earmark-person"></i>
+                            </div>
+                            <h5 class="empty-state-title">No Applications Found</h5>
+                            <p class="empty-state-description">Applications will appear here when candidates apply for jobs.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

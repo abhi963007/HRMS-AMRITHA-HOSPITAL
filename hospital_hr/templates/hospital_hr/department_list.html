@@ -1,0 +1,94 @@
+{% extends 'hospital_hr/base.html' %}
+{% load static %}
+
+{% block title %}Departments - Amrita Hospital HRMS{% endblock %}
+{% block page_title %}Departments{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="table-header">
+        <h5 class="table-title">All Departments</h5>
+        <div class="table-actions">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" class="table-search" data-table="departmentsTable" placeholder="Search departments...">
+            </div>
+            <button type="button" class="btn btn-primary" data-modal-url="{% url 'hospital_hr:department_create' %}" data-modal-title="Add Department" data-modal-size="lg">
+                <i class="bi bi-plus-lg"></i> Add Department
+            </button>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover" id="departmentsTable">
+            <thead>
+                <tr>
+                    <th>Department</th>
+                    <th>Code</th>
+                    <th>Location</th>
+                    <th>Head</th>
+                    <th>Staff Count</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dept in departments %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <div>
+                                <div class="fw-medium">{{ dept.name }}</div>
+                                {% if dept.email %}<small class="text-muted">{{ dept.email }}</small>{% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge bg-light text-dark">{{ dept.code }}</span></td>
+                    <td>{{ dept.get_location_display }}</td>
+                    <td>{{ dept.head.get_full_name|default:"Not Assigned" }}</td>
+                    <td>
+                        <span class="fw-medium">{{ dept.get_staff_count }}</span>
+                        <small class="text-muted">staff</small>
+                    </td>
+                    <td>
+                        {% if dept.is_active %}
+                        <span class="badge badge-active">Active</span>
+                        {% else %}
+                        <span class="badge badge-suspended">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <button type="button" class="btn btn-icon btn-sm btn-outline-secondary" title="Edit" data-modal-url="{% url 'hospital_hr:department_edit' dept.pk %}" data-modal-title="Edit Department" data-modal-size="lg">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="btn btn-icon btn-sm btn-outline-danger" title="Delete" data-delete-url="{% url 'hospital_hr:department_delete' dept.pk %}" data-delete-message="Are you sure you want to delete {{ dept.name }}?">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <h5 class="empty-state-title">No Departments Found</h5>
+                            <p class="empty-state-description">Get started by creating your first department.</p>
+                            <button type="button" class="btn btn-primary" data-modal-url="{% url 'hospital_hr:department_create' %}" data-modal-title="Add Department" data-modal-size="lg">
+                                <i class="bi bi-plus-lg me-2"></i>Add Department
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

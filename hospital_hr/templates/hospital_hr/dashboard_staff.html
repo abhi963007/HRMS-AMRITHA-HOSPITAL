@@ -1,0 +1,180 @@
+{% extends 'hospital_hr/base.html' %}
+{% load static %}
+
+{% block title %}Staff Dashboard - Amrita Hospital HRMS{% endblock %}
+{% block page_title %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-content">
+    {% if employee %}
+    <!-- Employee Profile Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 28px;">
+                            {{ employee.user.first_name|slice:":1" }}{{ employee.user.last_name|slice:":1" }}
+                        </div>
+                        <div>
+                            <h4 class="mb-1">{{ employee.user.get_full_name }}</h4>
+                            <p class="text-muted mb-1">{{ employee.designation }}</p>
+                            <div class="d-flex gap-3 text-muted small">
+                                <span><i class="bi bi-person-badge me-1"></i>{{ employee.employee_id }}</span>
+                                <span><i class="bi bi-building me-1"></i>{{ employee.department.name|default:"Not Assigned" }}</span>
+                                <span><i class="bi bi-clock me-1"></i>{{ employee.get_shift_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <span class="badge badge-{{ employee.status }} fs-6 px-3 py-2">{{ employee.get_status_display }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Metric Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="metric-card success">
+                <div class="metric-card-header">
+                    <div class="metric-icon success">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                </div>
+                <div class="metric-value">{{ approved_leaves }}</div>
+                <div class="metric-label">Approved Leaves</div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6">
+            <div class="metric-card warning">
+                <div class="metric-card-header">
+                    <div class="metric-icon warning">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                </div>
+                <div class="metric-value">{{ pending_leaves }}</div>
+                <div class="metric-label">Pending Requests</div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6">
+            <div class="metric-card danger">
+                <div class="metric-card-header">
+                    <div class="metric-icon" style="background: rgba(211, 47, 47, 0.1); color: #D32F2F;">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </div>
+                </div>
+                <div class="metric-value">{{ rejected_leaves }}</div>
+                <div class="metric-label">Rejected Requests</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions & Leave History -->
+    <div class="row g-4">
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <button type="button" class="btn btn-primary" data-modal-url="{% url 'hospital_hr:leave_request_create' %}" data-modal-title="Request Leave" data-modal-size="lg">
+                            <i class="bi bi-calendar-plus me-2"></i>Request Leave
+                        </button>
+                        <a href="{% url 'hospital_hr:job_public_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-briefcase me-2"></i>View Open Positions
+                        </a>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h6 class="text-muted mb-3">My Information</h6>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Email</small>
+                        <span>{{ employee.user.email }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Date of Joining</small>
+                        <span>{{ employee.date_of_joining|date:"F d, Y" }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Category</small>
+                        <span>{{ employee.get_category_display }}</span>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Qualification</small>
+                        <span>{{ employee.qualification|default:"Not specified" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Leave History -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">My Leave History</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Leave Type</th>
+                                    <th>Duration</th>
+                                    <th>Days</th>
+                                    <th>Status</th>
+                                    <th>Requested On</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for leave in my_leaves %}
+                                <tr>
+                                    <td>
+                                        <span class="fw-medium">{{ leave.get_leave_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        {{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}
+                                    </td>
+                                    <td>{{ leave.total_days }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ leave.status }}">{{ leave.get_status_display }}</span>
+                                    </td>
+                                    <td>{{ leave.created_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+                                        No leave requests found
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- No Employee Profile -->
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <div class="empty-state-icon mx-auto mb-4">
+                <i class="bi bi-person-x"></i>
+            </div>
+            <h4>Employee Profile Not Found</h4>
+            <p class="text-muted">Your user account is not linked to an employee profile.</p>
+            <p class="text-muted">Please contact HR to set up your employee profile.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

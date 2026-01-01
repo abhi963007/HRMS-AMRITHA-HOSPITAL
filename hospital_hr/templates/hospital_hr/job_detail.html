@@ -1,0 +1,147 @@
+{% extends 'hospital_hr/base.html' %}
+{% load static %}
+
+{% block title %}{{ job.title }} - Amrita Hospital HRMS{% endblock %}
+{% block page_title %}Job Details{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Job Info Card -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'hospital_hr:job_edit' job.pk %}"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'hospital_hr:job_delete' job.pk %}"><i class="bi bi-trash me-2"></i>Delete</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h4 class="mb-2">{{ job.title }}</h4>
+                <p class="text-muted mb-4">{{ job.department.name }}</p>
+                
+                <div class="mb-3">
+                    <small class="text-muted d-block">Category</small>
+                    <span class="fw-medium">{{ job.get_category_display }}</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Job Type</small>
+                    <span class="fw-medium">{{ job.get_job_type_display }}</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Vacancies</small>
+                    <span class="fw-medium">{{ job.vacancies }} position{{ job.vacancies|pluralize }}</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Salary Range</small>
+                    <span class="fw-medium">₹{{ job.salary_min|floatformat:0 }} - ₹{{ job.salary_max|floatformat:0 }}</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Experience Required</small>
+                    <span class="fw-medium">{{ job.min_experience }}+ years</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Qualification</small>
+                    <span class="fw-medium">{{ job.min_qualification }}</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Posted On</small>
+                    <span class="fw-medium">{{ job.posted_date|date:"F d, Y" }}</span>
+                </div>
+                {% if job.closing_date %}
+                <div class="mb-3">
+                    <small class="text-muted d-block">Closing Date</small>
+                    <span class="fw-medium">{{ job.closing_date|date:"F d, Y" }}</span>
+                </div>
+                {% endif %}
+                <div>
+                    <small class="text-muted d-block">Posted By</small>
+                    <span class="fw-medium">{{ job.posted_by.get_full_name|default:"System" }}</span>
+                </div>
+                
+                <hr>
+                
+                <a href="{% url 'hospital_hr:job_list' %}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Jobs
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Job Description & Applications -->
+    <div class="col-lg-8">
+        <!-- Description -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Job Description</h5>
+            </div>
+            <div class="card-body">
+                <p style="white-space: pre-line;">{{ job.description }}</p>
+                
+                {% if job.responsibilities %}
+                <h6 class="mt-4 mb-2">Key Responsibilities</h6>
+                <p style="white-space: pre-line;">{{ job.responsibilities }}</p>
+                {% endif %}
+                
+                <h6 class="mt-4 mb-2">Requirements</h6>
+                <p style="white-space: pre-line;">{{ job.requirements }}</p>
+            </div>
+        </div>
+        
+        <!-- Applications -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Applications ({{ applications.count }})</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Applicant</th>
+                                <th>Experience</th>
+                                <th>Applied</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                            <tr>
+                                <td>
+                                    <div class="fw-medium">{{ app.applicant_name }}</div>
+                                    <small class="text-muted">{{ app.email }}</small>
+                                </td>
+                                <td>{{ app.experience_years }} year{{ app.experience_years|pluralize }}</td>
+                                <td>{{ app.applied_date|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="badge badge-{{ app.status }}">{{ app.get_status_display }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'hospital_hr:application_detail' app.pk %}" class="btn btn-sm btn-outline-primary">
+                                        Review
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    No applications received yet
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,221 @@
+{% extends 'hospital_hr/base.html' %}
+{% load static %}
+
+{% block title %}Application - {{ application.applicant_name }} - Amrita Hospital HRMS{% endblock %}
+{% block page_title %}Application Review{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Applicant Info -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; font-size: 28px;">
+                        {{ application.applicant_name|slice:":2"|upper }}
+                    </div>
+                    <h4 class="mb-1">{{ application.applicant_name }}</h4>
+                    <span class="badge badge-{{ application.status }}">{{ application.get_status_display }}</span>
+                </div>
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <small class="text-muted d-block"><i class="bi bi-envelope me-1"></i>Email</small>
+                    <span>{{ application.email }}</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block"><i class="bi bi-telephone me-1"></i>Phone</small>
+                    <span>{{ application.phone }}</span>
+                </div>
+                {% if application.date_of_birth %}
+                <div class="mb-3">
+                    <small class="text-muted d-block"><i class="bi bi-calendar me-1"></i>Date of Birth</small>
+                    <span>{{ application.date_of_birth|date:"F d, Y" }}</span>
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <small class="text-muted d-block"><i class="bi bi-briefcase me-1"></i>Applied For</small>
+                    <span class="fw-medium">{{ application.job.title }}</span>
+                    <br><small class="text-muted">{{ application.job.department.name }}</small>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block"><i class="bi bi-calendar-check me-1"></i>Applied On</small>
+                    <span>{{ application.applied_date|date:"F d, Y" }}</span>
+                </div>
+                
+                {% if application.resume %}
+                <hr>
+                <a href="{{ application.resume.url }}" class="btn btn-outline-primary w-100" target="_blank">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>View Resume
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Update Status Form -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Update Status</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_status" class="form-label">Status</label>
+                        {{ form.status }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_interview_date" class="form-label">Interview Date</label>
+                        {{ form.interview_date }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_interview_notes" class="form-label">Notes</label>
+                        {{ form.interview_notes }}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-lg me-2"></i>Update Application
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Application Details -->
+    <div class="col-lg-8">
+        <!-- Professional Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-mortarboard me-2"></i>Professional Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Qualification</small>
+                        <span class="fw-medium">{{ application.qualification }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Specialization</small>
+                        <span class="fw-medium">{{ application.specialization|default:"Not specified" }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Experience</small>
+                        <span class="fw-medium">{{ application.experience_years }} year{{ application.experience_years|pluralize }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Current Employment -->
+        {% if application.current_employer or application.current_designation %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-building me-2"></i>Current Employment
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Current Employer</small>
+                        <span class="fw-medium">{{ application.current_employer|default:"Not specified" }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Current Designation</small>
+                        <span class="fw-medium">{{ application.current_designation|default:"Not specified" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Cover Letter -->
+        {% if application.cover_letter %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-file-text me-2"></i>Cover Letter
+                </h5>
+            </div>
+            <div class="card-body">
+                <p style="white-space: pre-line;">{{ application.cover_letter }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Interview Notes -->
+        {% if application.interview_notes %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-journal-text me-2"></i>Interview Notes
+                </h5>
+            </div>
+            <div class="card-body">
+                <p style="white-space: pre-line;">{{ application.interview_notes }}</p>
+                {% if application.interview_date %}
+                <hr>
+                <small class="text-muted">
+                    <i class="bi bi-calendar-event me-1"></i>
+                    Interview scheduled for: {{ application.interview_date|date:"F d, Y \a\t h:i A" }}
+                </small>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Job Requirements Comparison -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clipboard-check me-2"></i>Requirements Match
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted d-block mb-1">Required Experience</small>
+                            <span class="fw-medium">{{ application.job.min_experience }}+ years</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 {% if application.experience_years >= application.job.min_experience %}bg-success bg-opacity-10{% else %}bg-warning bg-opacity-10{% endif %} rounded">
+                            <small class="text-muted d-block mb-1">Applicant Experience</small>
+                            <span class="fw-medium">{{ application.experience_years }} years</span>
+                            {% if application.experience_years >= application.job.min_experience %}
+                            <i class="bi bi-check-circle-fill text-success ms-2"></i>
+                            {% else %}
+                            <i class="bi bi-exclamation-circle-fill text-warning ms-2"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted d-block mb-1">Required Qualification</small>
+                            <span class="fw-medium">{{ application.job.min_qualification }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <small class="text-muted d-block mb-1">Applicant Qualification</small>
+                            <span class="fw-medium">{{ application.qualification }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'hospital_hr:application_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back to Applications
+    </a>
+</div>
+{% endblock %}

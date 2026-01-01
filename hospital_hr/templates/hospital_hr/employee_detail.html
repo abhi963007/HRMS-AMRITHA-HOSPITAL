@@ -1,0 +1,182 @@
+{% extends 'hospital_hr/base.html' %}
+{% load static %}
+
+{% block title %}{{ employee.user.get_full_name }} - Amrita Hospital HRMS{% endblock %}
+{% block page_title %}Employee Details{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Employee Profile Card -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body text-center py-4">
+                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px; font-size: 36px;">
+                    {{ employee.user.first_name|slice:":1" }}{{ employee.user.last_name|slice:":1" }}
+                </div>
+                <h4 class="mb-1">{{ employee.user.get_full_name }}</h4>
+                <p class="text-muted mb-2">{{ employee.designation }}</p>
+                <span class="badge badge-{{ employee.status }} mb-3">{{ employee.get_status_display }}</span>
+                
+                <hr>
+                
+                <div class="text-start">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Employee ID</small>
+                        <span class="fw-medium font-monospace">{{ employee.employee_id }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Email</small>
+                        <span>{{ employee.user.email }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Phone</small>
+                        <span>{{ employee.user.phone|default:"Not provided" }}</span>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Department</small>
+                        <span>{{ employee.department.name|default:"Not Assigned" }}</span>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="d-grid gap-2">
+                    <a href="{% url 'hospital_hr:employee_edit' employee.pk %}" class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i>Edit Employee
+                    </a>
+                    <a href="{% url 'hospital_hr:employee_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Employee Details -->
+    <div class="col-lg-8">
+        <!-- Employment Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-briefcase me-2"></i>Employment Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Category</small>
+                        <span class="fw-medium">{{ employee.get_category_display }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Shift</small>
+                        <span class="fw-medium">{{ employee.get_shift_display }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Date of Joining</small>
+                        <span class="fw-medium">{{ employee.date_of_joining|date:"F d, Y" }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Qualification</small>
+                        <span class="fw-medium">{{ employee.qualification|default:"Not specified" }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Specialization</small>
+                        <span class="fw-medium">{{ employee.specialization|default:"Not specified" }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Experience</small>
+                        <span class="fw-medium">{{ employee.experience_years }} year{{ employee.experience_years|pluralize }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Salary</small>
+                        <span class="fw-medium">₹{{ employee.salary|floatformat:0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Personal Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person me-2"></i>Personal Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Date of Birth</small>
+                        <span class="fw-medium">{{ employee.date_of_birth|date:"F d, Y"|default:"Not provided" }}</span>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted d-block">Address</small>
+                        <span class="fw-medium">{{ employee.address|default:"Not provided" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Emergency Contact -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-telephone me-2"></i>Emergency Contact
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Contact Name</small>
+                        <span class="fw-medium">{{ employee.emergency_contact_name|default:"Not provided" }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Phone</small>
+                        <span class="fw-medium">{{ employee.emergency_contact_phone|default:"Not provided" }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Relationship</small>
+                        <span class="fw-medium">{{ employee.emergency_contact_relation|default:"Not provided" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Leave History -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-calendar-check me-2"></i>Recent Leave Requests
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Duration</th>
+                                <th>Days</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in leave_requests %}
+                            <tr>
+                                <td>{{ leave.get_leave_type_display }}</td>
+                                <td>{{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}</td>
+                                <td>{{ leave.total_days }}</td>
+                                <td><span class="badge badge-{{ leave.status }}">{{ leave.get_status_display }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No leave requests found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'hospital_hr/base.html' %}
+{% load static %}
+
+{% block title %}Jobs - Amrita Hospital HRMS{% endblock %}
+{% block page_title %}Job Postings{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="table-header">
+        <h5 class="table-title">All Job Postings</h5>
+        <div class="table-actions">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" class="table-search" data-table="jobsTable" placeholder="Search jobs...">
+            </div>
+            <button type="button" class="btn btn-primary" data-modal-url="{% url 'hospital_hr:job_create' %}" data-modal-title="Post New Job" data-modal-size="xl">
+                <i class="bi bi-plus-lg"></i> Post New Job
+            </button>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="px-4 py-3 border-bottom bg-light">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All Status</option>
+                    <option value="open" {% if request.GET.status == 'open' %}selected{% endif %}>Open</option>
+                    <option value="closed" {% if request.GET.status == 'closed' %}selected{% endif %}>Closed</option>
+                    <option value="on_hold" {% if request.GET.status == 'on_hold' %}selected{% endif %}>On Hold</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Department</label>
+                <select name="department" class="form-select form-select-sm">
+                    <option value="">All Departments</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.pk }}" {% if request.GET.department == dept.pk|stringformat:"i" %}selected{% endif %}>{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Category</label>
+                <select name="category" class="form-select form-select-sm">
+                    <option value="">All Categories</option>
+                    <option value="medical" {% if request.GET.category == 'medical' %}selected{% endif %}>Medical Staff</option>
+                    <option value="nursing" {% if request.GET.category == 'nursing' %}selected{% endif %}>Nursing Staff</option>
+                    <option value="paramedical" {% if request.GET.category == 'paramedical' %}selected{% endif %}>Paramedical & Technical</option>
+                    <option value="admin_support" {% if request.GET.category == 'admin_support' %}selected{% endif %}>Admin & Support</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-sm btn-secondary w-100">
+                    <i class="bi bi-funnel me-1"></i>Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover" id="jobsTable">
+            <thead>
+                <tr>
+                    <th>Position</th>
+                    <th>Department</th>
+                    <th>Type</th>
+                    <th>Vacancies</th>
+                    <th>Applications</th>
+                    <th>Status</th>
+                    <th>Posted</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td>
+                        <div>
+                            <div class="fw-medium">{{ job.title }}</div>
+                            <small class="text-muted">{{ job.get_category_display }}</small>
+                        </div>
+                    </td>
+                    <td>{{ job.department.name }}</td>
+                    <td><span class="badge bg-light text-dark">{{ job.get_job_type_display }}</span></td>
+                    <td>{{ job.vacancies }}</td>
+                    <td>
+                        <a href="{% url 'hospital_hr:job_detail' job.pk %}" class="text-decoration-none">
+                            {{ job.get_application_count }} <small class="text-muted">applicants</small>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ job.status }}">{{ job.get_status_display }}</span>
+                    </td>
+                    <td>{{ job.posted_date|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            <a href="{% url 'hospital_hr:job_detail' job.pk %}" class="btn btn-icon btn-sm btn-outline-secondary" title="View">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <button type="button" class="btn btn-icon btn-sm btn-outline-secondary" title="Edit" data-modal-url="{% url 'hospital_hr:job_edit' job.pk %}" data-modal-title="Edit Job" data-modal-size="xl">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="btn btn-icon btn-sm btn-outline-danger" title="Delete" data-delete-url="{% url 'hospital_hr:job_delete' job.pk %}" data-delete-message="Are you sure you want to delete {{ job.title }}?">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="bi bi-briefcase"></i>
+                            </div>
+                            <h5 class="empty-state-title">No Job Postings Found</h5>
+                            <p class="empty-state-description">Get started by creating your first job posting.</p>
+                            <button type="button" class="btn btn-primary" data-modal-url="{% url 'hospital_hr:job_create' %}" data-modal-title="Post New Job" data-modal-size="xl">
+                                <i class="bi bi-plus-lg me-2"></i>Post New Job
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

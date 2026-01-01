@@ -1,0 +1,95 @@
+{% extends 'hospital_hr/base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} Department - Amrita Hospital HRMS{% endblock %}
+{% block page_title %}{{ action }} Department{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="form-card card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-building me-2"></i>{{ action }} Department
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="form-section">
+                        <h6 class="form-section-title">Basic Information</h6>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="id_name" class="form-label">Department Name *</label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="id_code" class="form-label">Code *</label>
+                                {{ form.code }}
+                                {% if form.code.errors %}
+                                <div class="text-danger small mt-1">{{ form.code.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_location" class="form-label">Location *</label>
+                                {{ form.location }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_head" class="form-label">Department Head</label>
+                                {{ form.head }}
+                            </div>
+                            <div class="col-12">
+                                <label for="id_description" class="form-label">Description</label>
+                                {{ form.description }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h6 class="form-section-title">Contact Information</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="id_phone" class="form-label">Phone</label>
+                                {{ form.phone }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_email" class="form-label">Email</label>
+                                {{ form.email }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h6 class="form-section-title">Capacity & Status</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="id_total_beds" class="form-label">Total Beds</label>
+                                {{ form.total_beds }}
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mt-4">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="id_is_active">Active Department</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2 pt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i>Save Department
+                        </button>
+                        <a href="{% url 'hospital_hr:department_list' %}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
