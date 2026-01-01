@@ -1,297 +1,712 @@
-{% extends 'hospital_hr/base.html' %}
+{% extends "hospital_hr/base.html" %}
 {% load static %}
 
 {% block title %}Admin Dashboard - Amrita Hospital HRMS{% endblock %}
-{% block page_title %}Admin Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Premium Dashboard Styles */
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+        --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+        --gradient-1: linear-gradient(135deg, #FF6B6B 0%, #EE5253 100%);
+        --gradient-2: linear-gradient(135deg, #4834D4 0%, #686DE0 100%);
+        --gradient-3: linear-gradient(135deg, #6AB04C 0%, #BADC58 100%);
+        --gradient-4: linear-gradient(135deg, #F0932B 0%, #FFBE76 100%);
+    }
+
+    .dashboard-container {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Welcome Section */
+    .welcome-header {
+        margin-bottom: 2rem;
+    }
+
+    .welcome-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+    }
+
+    /* Premium Cards */
+    .premium-card {
+        background: var(--bg-surface);
+        border: none;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+        height: 100%;
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    .premium-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header-clean {
+        background: transparent;
+        padding: 1.5rem 1.75rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-title-modern {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-body-clean {
+        padding: 1.75rem;
+    }
+
+    /* Metric Cards Redesign */
+    .metric-card-modern {
+        padding: 1.75rem;
+        border-radius: 20px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+    }
+
+    .metric-card-modern:hover {
+        transform: scale(1.02);
+    }
+
+    .metric-bg-1 {
+        background: var(--gradient-1);
+    }
+
+    .metric-bg-2 {
+        background: var(--gradient-2);
+    }
+
+    .metric-bg-3 {
+        background: var(--gradient-3);
+    }
+
+    .metric-bg-4 {
+        background: var(--gradient-4);
+    }
+
+    .metric-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .metric-value-lg {
+        font-size: 2.75rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        line-height: 1;
+    }
+
+    .metric-label-clean {
+        font-size: 0.95rem;
+        font-weight: 500;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .metric-icon-bg {
+        position: absolute;
+        right: -10px;
+        bottom: -20px;
+        font-size: 8rem;
+        opacity: 0.15;
+        transform: rotate(-15deg);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    /* Quick Actions Pills */
+    .action-pill {
+        background: white;
+        border: 1px solid var(--border-color);
+        padding: 0.75rem 1.25rem;
+        border-radius: 50px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        margin-bottom: 0.5rem;
+        text-decoration: none;
+    }
+
+    .action-pill:hover {
+        background: var(--dark);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-pill i {
+        font-size: 1.1rem;
+    }
+
+    /* Modern Table */
+    .table-modern {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table-modern th {
+        background: #F9FAFB;
+        padding: 1rem 1.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .table-modern td {
+        padding: 1.25rem 1.5rem;
+        background: white;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        vertical-align: middle;
+        font-weight: 500;
+    }
+
+    .table-modern tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-modern tr:hover td {
+        background: #F9FAFB;
+    }
+
+    /* Avatar & Badge */
+    .avatar-sm {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--primary);
+        background: var(--primary-light);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+
+    .progress-custom {
+        height: 8px;
+        border-radius: 10px;
+        background-color: #F2F4F7;
+        margin-top: 8px;
+        overflow: hidden;
+    }
+
+    .progress-bar-custom {
+        background: var(--gradient-2);
+        border-radius: 10px;
+    }
+
+    /* Custom Pagination */
+    .pagination-custom {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+        padding: 1rem;
+    }
+
+    .page-link-custom {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        text-decoration: none;
+    }
+
+    .page-link-custom:hover {
+        background: #F2F4F7;
+        color: var(--primary);
+    }
+
+    .page-link-custom.active {
+        background: var(--dark);
+        color: white;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="dashboard-content">
-    <!-- Metric Cards -->
-    <div class="row g-4 mb-4">
+<div class="dashboard-container">
+    <!-- Welcome Header -->
+    <div class="d-flex justify-content-between align-items-end mb-4 welcome-header">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Overview</h2>
+            <p class="welcome-subtitle mb-0">Here's what's happening at Amrita Hospital today.</p>
+        </div>
+        <div class="d-none d-md-block">
+            <span class="badg bg-white text-secondary py-2 px-3 rounded-pill shadow-sm border">
+                <i class="bi bi-calendar3 me-2"></i>{% now "l, F j, Y" %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Modern Metric Cards -->
+    <div class="row g-4 mb-5">
         <div class="col-xl-3 col-md-6">
-            <div class="metric-card primary">
-                <div class="metric-card-header">
-                    <div class="metric-icon primary">
-                        <i class="bi bi-people-fill"></i>
-                    </div>
+            <div class="metric-card-modern metric-bg-1">
+                <div class="metric-content">
+                    <div class="metric-value-lg">{{ total_employees }}</div>
+                    <div class="metric-label-clean">Total Employees</div>
                 </div>
-                <div class="metric-value">{{ total_employees }}</div>
-                <div class="metric-label">Total Employees</div>
+                <i class="bi bi-people-fill metric-icon-bg"></i>
             </div>
         </div>
-
         <div class="col-xl-3 col-md-6">
-            <div class="metric-card secondary">
-                <div class="metric-card-header">
-                    <div class="metric-icon secondary">
-                        <i class="bi bi-building"></i>
-                    </div>
+            <div class="metric-card-modern metric-bg-2">
+                <div class="metric-content">
+                    <div class="metric-value-lg">{{ total_departments }}</div>
+                    <div class="metric-label-clean">Active Departments</div>
                 </div>
-                <div class="metric-value">{{ total_departments }}</div>
-                <div class="metric-label">Active Departments</div>
+                <i class="bi bi-building metric-icon-bg"></i>
             </div>
         </div>
-
         <div class="col-xl-3 col-md-6">
-            <div class="metric-card success">
-                <div class="metric-card-header">
-                    <div class="metric-icon success">
-                        <i class="bi bi-briefcase-fill"></i>
-                    </div>
+            <div class="metric-card-modern metric-bg-3">
+                <div class="metric-content">
+                    <div class="metric-value-lg">{{ total_jobs }}</div>
+                    <div class="metric-label-clean">Open Jobs</div>
                 </div>
-                <div class="metric-value">{{ total_jobs }}</div>
-                <div class="metric-label">Open Jobs</div>
+                <i class="bi bi-briefcase-fill metric-icon-bg"></i>
             </div>
         </div>
-
         <div class="col-xl-3 col-md-6">
-            <div class="metric-card warning">
-                <div class="metric-card-header">
-                    <div class="metric-icon warning">
-                        <i class="bi bi-calendar-x"></i>
-                    </div>
+            <div class="metric-card-modern metric-bg-4">
+                <div class="metric-content">
+                    <div class="metric-value-lg">{{ employees_on_leave }}</div>
+                    <div class="metric-label-clean">On Leave Today</div>
                 </div>
-                <div class="metric-value">{{ employees_on_leave }}</div>
-                <div class="metric-label">On Leave Today</div>
+                <i class="bi bi-calendar-x metric-icon-bg"></i>
             </div>
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="row g-4 mb-4">
+    <!-- Quick Actions as Pills -->
+    <div class="row mb-5">
         <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="text-muted mb-3">Quick Actions</h6>
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="{% url 'hospital_hr:attendance_dashboard' %}" class="btn btn-success">
-                            <i class="bi bi-calendar2-check me-2"></i>Manage Attendance
-                        </a>
-                        <a href="{% url 'hospital_hr:attendance_report' %}" class="btn btn-info text-white">
-                            <i class="bi bi-file-earmark-bar-graph me-2"></i>Attendance Reports
-                        </a>
-                        <a href="{% url 'hospital_hr:employee_list' %}" class="btn btn-primary">
-                            <i class="bi bi-people me-2"></i>Employees
-                        </a>
-                        <a href="{% url 'hospital_hr:department_list' %}" class="btn btn-secondary">
-                            <i class="bi bi-building me-2"></i>Departments
-                        </a>
-                        <a href="{% url 'hospital_hr:leave_request_list' %}" class="btn btn-outline-primary">
-                            <i class="bi bi-calendar-check me-2"></i>Leave Requests
-                        </a>
-                    </div>
-                </div>
+            <h5 class="text-muted fw-bold mb-3 text-uppercase fs-6 ls-1">Quick Access</h5>
+            <div class="d-flex flex-wrap gap-3">
+                <a href="{% url 'hospital_hr:attendance_dashboard' %}" class="action-pill">
+                    <i class="bi bi-calendar2-check text-success"></i>Manage Attendance
+                </a>
+                <a href="{% url 'hospital_hr:attendance_report' %}" class="action-pill">
+                    <i class="bi bi-file-earmark-bar-graph text-info"></i>Attendance Reports
+                </a>
+                <a href="{% url 'hospital_hr:employee_list' %}" class="action-pill">
+                    <i class="bi bi-people text-primary"></i>View Employees
+                </a>
+                <a href="{% url 'hospital_hr:department_list' %}" class="action-pill">
+                    <i class="bi bi-building text-secondary"></i>Departments
+                </a>
+                <a href="{% url 'hospital_hr:leave_request_list' %}" class="action-pill">
+                    <i class="bi bi-calendar-check text-warning"></i>Leave Requests
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- Charts Row -->
+    <!-- Charts / Lists Row -->
     <div class="row g-4 mb-4">
         <!-- Staff by Category -->
-        <div class="col-lg-6">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Staff by Category</h5>
+        <div class="col-lg-6" id="category-section">
+            <div class="premium-card">
+                <div class="card-header-clean">
+                    <h5 class="card-title-modern">
+                        <i class="bi bi-pie-chart-fill text-primary"></i> Staff Distribution
+                    </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body-clean">
                     {% for item in employees_by_category %}
-                    <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
                         <div class="d-flex align-items-center gap-3">
-                            <div
-                                class="rounded-circle p-2 {% if item.category == 'medical' %}bg-primary-subtle{% elif item.category == 'nursing' %}bg-info-subtle{% elif item.category == 'paramedical' %}bg-success-subtle{% else %}bg-secondary-subtle{% endif %}">
-                                <i
-                                    class="bi {% if item.category == 'medical' %}bi-heart-pulse{% elif item.category == 'nursing' %}bi-bandaid{% elif item.category == 'paramedical' %}bi-clipboard2-pulse{% else %}bi-person-badge{% endif %}"></i>
+                            <div class="avatar-sm 
+                                {% if item.category == 'medical' %}bg-danger-subtle text-danger
+                                {% elif item.category == 'nursing' %}bg-info-subtle text-info
+                                {% elif item.category == 'paramedical' %}bg-success-subtle text-success
+                                {% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                <i class="bi 
+                                    {% if item.category == 'medical' %}bi-heart-pulse
+                                    {% elif item.category == 'nursing' %}bi-bandaid
+                                    {% elif item.category == 'paramedical' %}bi-clipboard2-pulse
+                                    {% else %}bi-person-badge{% endif %}"></i>
                             </div>
-                            <span class="fw-medium text-capitalize">{{ item.category|default:"Unknown" }}</span>
+                            <div>
+                                <span class="d-block fw-bold text-dark">
+                                    {% if item.category == 'medical' %}Medical Staff
+                                    {% elif item.category == 'nursing' %}Nursing Staff
+                                    {% elif item.category == 'paramedical' %}Paramedical & Technical
+                                    {% elif item.category == 'admin_support' %}Admin & Support
+                                    {% else %}Unknown{% endif %}
+                                </span>
+                                <small class="text-muted">Category</small>
+                            </div>
                         </div>
-                        <span class="badge bg-light text-dark">{{ item.count }}</span>
+                        <span class="fs-5 fw-bold text-dark">{{ item.count }}</span>
                     </div>
                     {% empty %}
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                        No staff data available
-                    </div>
+                    <div class="text-center text-muted py-4">No data available</div>
                     {% endfor %}
                 </div>
+
+                {% if employees_by_category.has_other_pages %}
+                <div class="pagination-custom border-top">
+                    {% if employees_by_category.has_previous %}
+                    <a class="page-link-custom"
+                        href="?category_page={{ employees_by_category.previous_page_number }}{% if request.GET.dept_page %}&dept_page={{ request.GET.dept_page }}{% endif %}{% if request.GET.emp_page %}&emp_page={{ request.GET.emp_page }}{% endif %}{% if request.GET.leave_page %}&leave_page={{ request.GET.leave_page }}{% endif %}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}#category-section">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                    {% endif %}
+
+                    {% for num in employees_by_category.paginator.page_range %}
+                    {% if employees_by_category.number == num %}
+                    <span class="page-link-custom active">{{ num }}</span>
+                    {% elif num > employees_by_category.number|add:'-3' and num < employees_by_category.number|add:'3'
+                        %} <a class="page-link-custom"
+                        href="?category_page={{ num }}{% if request.GET.dept_page %}&dept_page={{ request.GET.dept_page }}{% endif %}{% if request.GET.emp_page %}&emp_page={{ request.GET.emp_page }}{% endif %}{% if request.GET.leave_page %}&leave_page={{ request.GET.leave_page }}{% endif %}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}#category-section">
+                        {{ num }}</a>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if employees_by_category.has_next %}
+                        <a class="page-link-custom"
+                            href="?category_page={{ employees_by_category.next_page_number }}{% if request.GET.dept_page %}&dept_page={{ request.GET.dept_page }}{% endif %}{% if request.GET.emp_page %}&emp_page={{ request.GET.emp_page }}{% endif %}{% if request.GET.leave_page %}&leave_page={{ request.GET.leave_page }}{% endif %}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}#category-section">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                        {% endif %}
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Staff by Department -->
-        <div class="col-lg-6">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Top Departments by Staff</h5>
+        <!-- Top Departments -->
+        <div class="col-lg-6" id="dept-section">
+            <div class="premium-card">
+                <div class="card-header-clean">
+                    <h5 class="card-title-modern">
+                        <i class="bi bi-bar-chart-fill text-info"></i> Top Departments
+                    </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body-clean">
                     {% for item in employees_by_department %}
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="fw-medium">{{ item.department__name|default:"Unassigned" }}</span>
-                            <span class="text-muted">{{ item.count }}</span>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold text-dark">{{ item.department__name|default:"Unassigned" }}</span>
+                            <span class="fw-bold text-primary">{{ item.count }} <small
+                                    class="text-muted fw-normal">Staff</small></span>
                         </div>
-                        <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-primary" role="progressbar"
-                                style="width: {% widthratio item.count total_employees 100 %}%"></div>
+                        <div class="progress-custom">
+                            <div class="progress-bar-custom" role="progressbar"
+                                style="width: {{ item.width_percentage }}%"></div>
                         </div>
                     </div>
                     {% empty %}
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                        No department data available
-                    </div>
+                    <div class="text-center text-muted py-4">No data available</div>
                     {% endfor %}
                 </div>
+
+                {% if employees_by_department.has_other_pages %}
+                <div class="pagination-custom border-top">
+                    {% if employees_by_department.has_previous %}
+                    <a class="page-link-custom"
+                        href="?dept_page={{ employees_by_department.previous_page_number }}{% if request.GET.category_page %}&category_page={{ request.GET.category_page }}{% endif %}{% if request.GET.emp_page %}&emp_page={{ request.GET.emp_page }}{% endif %}{% if request.GET.leave_page %}&leave_page={{ request.GET.leave_page }}{% endif %}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}#dept-section">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                    {% endif %}
+
+                    {% for num in employees_by_department.paginator.page_range %}
+                    {% if employees_by_department.number == num %}
+                    <span class="page-link-custom active">{{ num }}</span>
+                    {% elif num > employees_by_department.number|add:'-3' and num <
+                        employees_by_department.number|add:'3' %} <a class="page-link-custom"
+                        href="?dept_page={{ num }}{% if request.GET.category_page %}&category_page={{ request.GET.category_page }}{% endif %}{% if request.GET.emp_page %}&emp_page={{ request.GET.emp_page }}{% endif %}{% if request.GET.leave_page %}&leave_page={{ request.GET.leave_page }}{% endif %}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}#dept-section">
+                        {{ num }}</a>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if employees_by_department.has_next %}
+                        <a class="page-link-custom"
+                            href="?dept_page={{ employees_by_department.next_page_number }}{% if request.GET.category_page %}&category_page={{ request.GET.category_page }}{% endif %}{% if request.GET.emp_page %}&emp_page={{ request.GET.emp_page }}{% endif %}{% if request.GET.leave_page %}&leave_page={{ request.GET.leave_page }}{% endif %}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}#dept-section">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                        {% endif %}
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- Tables Row -->
-    <div class="row g-4">
+    <!-- Recent Employees & Leaves -->
+    <div class="row g-4 mb-4">
         <!-- Recent Employees -->
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Recent Employees</h5>
-                    <a href="{% url 'hospital_hr:employee_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        <div class="col-lg-6" id="emp-section">
+            <div class="premium-card">
+                <div class="card-header-clean">
+                    <h5 class="card-title-modern">Newest Team Members</h5>
+                    <a href="{% url 'hospital_hr:employee_list' %}"
+                        class="btn btn-sm btn-outline-secondary rounded-pill px-3">View All</a>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Employee</th>
-                                    <th>Department</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for emp in recent_employees %}
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center"
-                                                style="width: 36px; height: 36px;">
-                                                {{ emp.user.first_name|slice:":1" }}{{ emp.user.last_name|slice:":1" }}
-                                            </div>
-                                            <div>
-                                                <div class="fw-medium">{{ emp.user.get_full_name }}</div>
-                                                <small class="text-muted">{{ emp.employee_id }}</small>
-                                            </div>
+                <div class="table-responsive">
+                    <table class="table-modern">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Dept</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in recent_employees %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-sm bg-primary-subtle text-primary">
+                                            {{ emp.user.first_name|slice:":1" }}{{ emp.user.last_name|slice:":1" }}
                                         </div>
-                                    </td>
-                                    <td>{{ emp.department.name|default:"-" }}</td>
-                                    <td>
-                                        <span class="badge badge-{{ emp.status }}">{{ emp.get_status_display }}</span>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="3" class="text-center py-4 text-muted">No employees found</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ emp.user.get_full_name }}</div>
+                                            <small class="text-muted">{{ emp.employee_id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ emp.department.name|default:"-" }}</td>
+                                <td><span class="badge badge-{{ emp.status }}">{{ emp.get_status_display }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">No employees found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+
+                {% if recent_employees.has_other_pages %}
+                <div class="pagination-custom">
+                    {% if recent_employees.has_previous %}
+                    <a class="page-link-custom"
+                        href="?emp_page={{ recent_employees.previous_page_number }}{% if request.GET.category_page %}&category_page={{ request.GET.category_page }}{% endif %}{% if request.GET.dept_page %}&dept_page={{ request.GET.dept_page }}{% endif %}{% if request.GET.leave_page %}&leave_page={{ request.GET.leave_page }}{% endif %}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}#emp-section"><i
+                            class="bi bi-chevron-left"></i></a>
+                    {% endif %}
+                    {% for num in recent_employees.paginator.page_range %}
+                    {% if recent_employees.number == num %}
+                    <span class="page-link-custom active">{{ num }}</span>
+                    {% elif num > recent_employees.number|add:'-3' and num < recent_employees.number|add:'3' %} <a
+                        class="page-link-custom"
+                        href="?emp_page={{ num }}{% if request.GET.category_page %}&category_page={{ request.GET.category_page }}{% endif %}{% if request.GET.dept_page %}&dept_page={{ request.GET.dept_page }}{% endif %}{% if request.GET.leave_page %}&leave_page={{ request.GET.leave_page }}{% endif %}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}#emp-section">
+                        {{ num }}</a>
+                        {% endif %}
+                        {% endfor %}
+                        {% if recent_employees.has_next %}
+                        <a class="page-link-custom"
+                            href="?emp_page={{ recent_employees.next_page_number }}{% if request.GET.category_page %}&category_page={{ request.GET.category_page }}{% endif %}{% if request.GET.dept_page %}&dept_page={{ request.GET.dept_page }}{% endif %}{% if request.GET.leave_page %}&leave_page={{ request.GET.leave_page }}{% endif %}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}#emp-section"><i
+                                class="bi bi-chevron-right"></i></a>
+                        {% endif %}
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Pending Leave Requests -->
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Pending Leave Requests</h5>
-                    <a href="{% url 'hospital_hr:leave_request_list' %}" class="btn btn-sm btn-outline-primary">View
-                        All</a>
+        <!-- Pending Leave -->
+        <div class="col-lg-6" id="leave-section">
+            <div class="premium-card">
+                <div class="card-header-clean">
+                    <h5 class="card-title-modern">Leave Requests</h5>
+                    <a href="{% url 'hospital_hr:leave_request_list' %}"
+                        class="btn btn-sm btn-outline-secondary rounded-pill px-3">View All</a>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Employee</th>
-                                    <th>Type</th>
-                                    <th>Duration</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for leave in pending_leaves %}
-                                <tr>
-                                    <td>{{ leave.employee.user.get_full_name }}</td>
-                                    <td>{{ leave.get_leave_type_display }}</td>
-                                    <td>{{ leave.total_days }} day{{ leave.total_days|pluralize }}</td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-outline-primary"
-                                            data-modal-url="{% url 'hospital_hr:leave_request_approve' leave.pk %}"
-                                            data-modal-title="Review Leave Request" data-modal-size="lg">
-                                            Review
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">No pending requests</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table-modern">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Type</th>
+                                <th>Duration</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in pending_leaves %}
+                            <tr>
+                                <td>
+                                    <span class="fw-bold text-dark d-block">{{ leave.employee.user.get_full_name
+                                        }}</span>
+                                </td>
+                                <td><span class="badge bg-light text-dark border">{{ leave.get_leave_type_display
+                                        }}</span></td>
+                                <td>{{ leave.total_days }} day{{ leave.total_days|pluralize }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill"
+                                        data-modal-url="{% url 'hospital_hr:leave_request_approve' leave.pk %}"
+                                        data-modal-title="Review Leave Request" data-modal-size="lg">
+                                        Review
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">No pending requests</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+
+                {% if pending_leaves.has_other_pages %}
+                <div class="pagination-custom">
+                    {% if pending_leaves.has_previous %}
+                    <a class="page-link-custom"
+                        href="?leave_page={{ pending_leaves.previous_page_number }}{% if request.GET.category_page %}&category_page={{ request.GET.category_page }}{% endif %}{% if request.GET.dept_page %}&dept_page={{ request.GET.dept_page }}{% endif %}{% if request.GET.emp_page %}&emp_page={{ request.GET.emp_page }}{% endif %}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}#leave-section"><i
+                            class="bi bi-chevron-left"></i></a>
+                    {% endif %}
+                    {% for num in pending_leaves.paginator.page_range %}
+                    {% if pending_leaves.number == num %}
+                    <span class="page-link-custom active">{{ num }}</span>
+                    {% elif num > pending_leaves.number|add:'-3' and num < pending_leaves.number|add:'3' %} <a
+                        class="page-link-custom"
+                        href="?leave_page={{ num }}{% if request.GET.category_page %}&category_page={{ request.GET.category_page }}{% endif %}{% if request.GET.dept_page %}&dept_page={{ request.GET.dept_page }}{% endif %}{% if request.GET.emp_page %}&emp_page={{ request.GET.emp_page }}{% endif %}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}#leave-section">
+                        {{ num }}</a>
+                        {% endif %}
+                        {% endfor %}
+                        {% if pending_leaves.has_next %}
+                        <a class="page-link-custom"
+                            href="?leave_page={{ pending_leaves.next_page_number }}{% if request.GET.category_page %}&category_page={{ request.GET.category_page }}{% endif %}{% if request.GET.dept_page %}&dept_page={{ request.GET.dept_page }}{% endif %}{% if request.GET.emp_page %}&emp_page={{ request.GET.emp_page }}{% endif %}{% if request.GET.app_page %}&app_page={{ request.GET.app_page }}{% endif %}#leave-section"><i
+                                class="bi bi-chevron-right"></i></a>
+                        {% endif %}
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 
     <!-- Recent Applications -->
-    <div class="row g-4 mt-0">
+    <div class="row g-4 mb-4" id="app-section">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Recent Job Applications</h5>
-                    <a href="{% url 'hospital_hr:application_list' %}" class="btn btn-sm btn-outline-primary">View
-                        All</a>
+            <div class="premium-card">
+                <div class="card-header-clean">
+                    <h5 class="card-title-modern">Recruitment Pipeline</h5>
+                    <a href="{% url 'hospital_hr:application_list' %}"
+                        class="btn btn-sm btn-outline-secondary rounded-pill px-3">View All</a>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Applicant</th>
-                                    <th>Position</th>
-                                    <th>Applied Date</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for app in recent_applications %}
-                                <tr>
-                                    <td>
-                                        <div class="fw-medium">{{ app.applicant_name }}</div>
-                                        <small class="text-muted">{{ app.email }}</small>
-                                    </td>
-                                    <td>{{ app.job.title }}</td>
-                                    <td>{{ app.applied_date|date:"M d, Y" }}</td>
-                                    <td>
-                                        <span class="badge badge-{{ app.status }}">{{ app.get_status_display }}</span>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary"
-                                            data-modal-url="{% url 'hospital_hr:application_detail' app.pk %}"
-                                            data-modal-title="Review Application" data-modal-size="xl">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">No applications found</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table-modern">
+                        <thead>
+                            <tr>
+                                <th>Applicant</th>
+                                <th>Position</th>
+                                <th>Applied Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in recent_applications %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ app.applicant_name }}</div>
+                                    <small class="text-muted">{{ app.email }}</small>
+                                </td>
+                                <td><span class="fw-medium text-primary">{{ app.job.title }}</span></td>
+                                <td>{{ app.applied_date|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="badge badge-{{ app.status }}">{{ app.get_status_display }}</span>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill"
+                                        data-modal-url="{% url 'hospital_hr:application_detail' app.pk %}"
+                                        data-modal-title="Review Application" data-modal-size="xl">
+                                        View Details
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No applications found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+
+                {% if recent_applications.has_other_pages %}
+                <div class="pagination-custom">
+                    {% if recent_applications.has_previous %}
+                    <a class="page-link-custom"
+                        href="?app_page={{ recent_applications.previous_page_number }}{% if request.GET.category_page %}&category_page={{ request.GET.category_page }}{% endif %}{% if request.GET.dept_page %}&dept_page={{ request.GET.dept_page }}{% endif %}{% if request.GET.emp_page %}&emp_page={{ request.GET.emp_page }}{% endif %}{% if request.GET.leave_page %}&leave_page={{ request.GET.leave_page }}{% endif %}#app-section"><i
+                            class="bi bi-chevron-left"></i></a>
+                    {% endif %}
+                    {% for num in recent_applications.paginator.page_range %}
+                    {% if recent_applications.number == num %}
+                    <span class="page-link-custom active">{{ num }}</span>
+                    {% elif num > recent_applications.number|add:'-3' and num < recent_applications.number|add:'3' %} <a
+                        class="page-link-custom"
+                        href="?app_page={{ num }}{% if request.GET.category_page %}&category_page={{ request.GET.category_page }}{% endif %}{% if request.GET.dept_page %}&dept_page={{ request.GET.dept_page }}{% endif %}{% if request.GET.emp_page %}&emp_page={{ request.GET.emp_page }}{% endif %}{% if request.GET.leave_page %}&leave_page={{ request.GET.leave_page }}{% endif %}#app-section">
+                        {{ num }}</a>
+                        {% endif %}
+                        {% endfor %}
+                        {% if recent_applications.has_next %}
+                        <a class="page-link-custom"
+                            href="?app_page={{ recent_applications.next_page_number }}{% if request.GET.category_page %}&category_page={{ request.GET.category_page }}{% endif %}{% if request.GET.dept_page %}&dept_page={{ request.GET.dept_page }}{% endif %}{% if request.GET.emp_page %}&emp_page={{ request.GET.emp_page }}{% endif %}{% if request.GET.leave_page %}&leave_page={{ request.GET.leave_page }}{% endif %}#app-section"><i
+                                class="bi bi-chevron-right"></i></a>
+                        {% endif %}
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

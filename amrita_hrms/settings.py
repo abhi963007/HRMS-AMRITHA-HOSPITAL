@@ -95,3 +95,8 @@ LOGIN_REDIRECT_URL = 'hospital_hr:dashboard'
 LOGOUT_REDIRECT_URL = 'hospital_hr:landing'
 
 AUTH_USER_MODEL = 'hospital_hr.User'
+
+# Groq API Configuration (for AI Assistant)
+# Set your Groq API key as environment variable GROQ_API_KEY
+import os
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')

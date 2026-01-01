@@ -19,10 +19,13 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo-container">
-                    <img src="{% static 'hospital_hr/images/logo.svg' %}" alt="Amrita Hospital" class="sidebar-logo">
+                    <i class="bi bi-hospital-fill logo-icon"></i>
+                    <div class="logo-text">
+                        <span class="logo-title">Amrita</span>
+                        <span class="logo-subtitle">Hospital HRMS</span>
+                    </div>
                 </div>
             </div>
-
             <nav class="sidebar-nav">
                 <ul class="nav-list">
                     <li class="nav-item">
@@ -70,9 +73,16 @@
                     </li>
                     <li class="nav-item">
                         <a href="{% url 'hospital_hr:attendance_dashboard' %}"
-                            class="nav-link {% if 'attendance' in request.resolver_match.url_name and 'my' not in request.resolver_match.url_name %}active{% endif %}">
+                            class="nav-link {% if 'attendance' in request.resolver_match.url_name and 'my' not in request.resolver_match.url_name and 'department' not in request.resolver_match.url_name %}active{% endif %}">
                             <i class="bi bi-calendar2-check-fill"></i>
                             <span>Attendance</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'hospital_hr:ai_assistant' %}"
+                            class="nav-link {% if 'ai_assistant' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="bi bi-robot"></i>
+                            <span>AI Assistant</span>
                         </a>
                     </li>
                     {% endif %}
@@ -148,7 +158,7 @@
                             </div>
                             <div class="user-info">
                                 <span class="user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
-                                <span class="user-role">{{ request.user.get_role_display }}</span>
+                                <span class="user-role">{{ request.user.get_role_display|upper }}</span>
                             </div>
                             <i class="bi bi-chevron-down"></i>
                         </button>
@@ -228,10 +238,10 @@
     <script src="{% static 'hospital_hr/js/dashboard.js' %}"></script>
     <script>
         // Auto-dismiss messages after 5 seconds
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                setTimeout(function() {
+            alerts.forEach(function (alert) {
+                setTimeout(function () {
                     const bsAlert = new bootstrap.Alert(alert);
                     bsAlert.close();
                 }, 5000);

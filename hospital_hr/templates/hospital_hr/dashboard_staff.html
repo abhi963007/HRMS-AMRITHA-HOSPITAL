@@ -4,179 +4,245 @@
 {% block title %}Staff Dashboard - Amrita Hospital HRMS{% endblock %}
 {% block page_title %}My Dashboard{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Staff Specific Premium Styles */
+    .profile-card-modern {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border-radius: 20px;
+        color: white;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-bg-pattern {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 100%;
+        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        opacity: 0.6;
+    }
+
+    .profile-avatar-lg {
+        width: 90px;
+        height: 90px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.6;
+        margin-bottom: 0.2rem;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    /* Metric Gradients */
+    .metric-bg-success {
+        background: linear-gradient(135deg, #00b894 0%, #55efc4 100%);
+    }
+
+    .metric-bg-warning {
+        background: linear-gradient(135deg, #fdcb6e 0%, #ffeaa7 100%);
+    }
+
+    .metric-bg-danger {
+        background: linear-gradient(135deg, #ff7675 0%, #fab1a0 100%);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="dashboard-content">
+<div class="dashboard-container">
     {% if employee %}
-    <!-- Employee Profile Card -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <div class="d-flex align-items-center gap-4">
-                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 28px;">
-                            {{ employee.user.first_name|slice:":1" }}{{ employee.user.last_name|slice:":1" }}
-                        </div>
-                        <div>
-                            <h4 class="mb-1">{{ employee.user.get_full_name }}</h4>
-                            <p class="text-muted mb-1">{{ employee.designation }}</p>
-                            <div class="d-flex gap-3 text-muted small">
-                                <span><i class="bi bi-person-badge me-1"></i>{{ employee.employee_id }}</span>
-                                <span><i class="bi bi-building me-1"></i>{{ employee.department.name|default:"Not Assigned" }}</span>
-                                <span><i class="bi bi-clock me-1"></i>{{ employee.get_shift_display }}</span>
+    <!-- Modern Employee Profile Card -->
+    <div class="profile-card-modern">
+        <div class="profile-bg-pattern"></div>
+        <div class="row align-items-center position-relative z-1">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h2 class="fw-bold mb-1">{{ employee.user.get_full_name }}</h2>
+                        <p class="mb-2 opacity-75 fs-5">{{ employee.designation }}</p>
+                        <div class="d-flex flex-wrap gap-4 mt-3">
+                            <div>
+                                <i class="bi bi-person-badge me-2 opacity-50"></i>
+                                <span class="opacity-90">{{ employee.employee_id }}</span>
+                            </div>
+                            <div>
+                                <i class="bi bi-building me-2 opacity-50"></i>
+                                <span class="opacity-90">{{ employee.department.name|default:"Not Assigned" }}</span>
+                            </div>
+                            <div>
+                                <i class="bi bi-clock me-2 opacity-50"></i>
+                                <span class="opacity-90">{{ employee.get_shift_display }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <span class="badge badge-{{ employee.status }} fs-6 px-3 py-2">{{ employee.get_status_display }}</span>
-                </div>
+            </div>
+            <div class="col-md-4 text-md-end mt-4 mt-md-0">
+                <span class="badge bg-white text-dark px-4 py-2 rounded-pill fs-6 fw-bold shadow-sm">
+                    <i class="bi bi-circle-fill me-2 {% if employee.status == 'active' %}text-success{% elif employee.status == 'on_leave' %}text-warning{% elif employee.status == 'suspended' %}text-danger{% else %}text-secondary{% endif %}"
+                        style="font-size: 0.6rem;"></i>Status: {{ employee.get_status_display }}
+                </span>
             </div>
         </div>
     </div>
-    
+
     <!-- Metric Cards -->
-    <div class="row g-4 mb-4">
+    <div class="row g-4 mb-5">
         <div class="col-xl-4 col-md-6">
-            <div class="metric-card success">
-                <div class="metric-card-header">
-                    <div class="metric-icon success">
-                        <i class="bi bi-check-circle-fill"></i>
-                    </div>
+            <div class="metric-card-modern metric-bg-success">
+                <div class="metric-content">
+                    <div class="metric-value-lg">{{ approved_leaves }}</div>
+                    <div class="metric-label-clean">Approved Leaves</div>
                 </div>
-                <div class="metric-value">{{ approved_leaves }}</div>
-                <div class="metric-label">Approved Leaves</div>
+                <i class="bi bi-check-circle-fill metric-icon-bg"></i>
             </div>
         </div>
-        
+
         <div class="col-xl-4 col-md-6">
-            <div class="metric-card warning">
-                <div class="metric-card-header">
-                    <div class="metric-icon warning">
-                        <i class="bi bi-hourglass-split"></i>
-                    </div>
+            <div class="metric-card-modern metric-bg-warning">
+                <div class="metric-content">
+                    <div class="metric-value-lg text-dark">{{ pending_leaves }}</div>
+                    <div class="metric-label-clean text-dark">Pending Requests</div>
                 </div>
-                <div class="metric-value">{{ pending_leaves }}</div>
-                <div class="metric-label">Pending Requests</div>
+                <i class="bi bi-hourglass-split metric-icon-bg text-dark"></i>
             </div>
         </div>
-        
+
         <div class="col-xl-4 col-md-6">
-            <div class="metric-card danger">
-                <div class="metric-card-header">
-                    <div class="metric-icon" style="background: rgba(211, 47, 47, 0.1); color: #D32F2F;">
-                        <i class="bi bi-x-circle-fill"></i>
-                    </div>
+            <div class="metric-card-modern metric-bg-danger">
+                <div class="metric-content">
+                    <div class="metric-value-lg">{{ rejected_leaves }}</div>
+                    <div class="metric-label-clean">Rejected Requests</div>
                 </div>
-                <div class="metric-value">{{ rejected_leaves }}</div>
-                <div class="metric-label">Rejected Requests</div>
+                <i class="bi bi-x-circle-fill metric-icon-bg"></i>
             </div>
         </div>
     </div>
-    
-    <!-- Quick Actions & Leave History -->
+
+    <!-- Content split -->
     <div class="row g-4">
-        <!-- Quick Actions -->
+        <!-- Sidebar Column -->
         <div class="col-lg-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Quick Actions</h5>
+            <!-- Quick Actions -->
+            <div class="mb-4">
+                <h5 class="text-muted fw-bold mb-3 text-uppercase fs-6 ls-1">Quick Actions</h5>
+                <div class="d-flex flex-column gap-2">
+                    <a href="{% url 'hospital_hr:attendance_my_view' %}" class="action-pill justify-content-center">
+                        <i class="bi bi-clock text-success"></i>Check In / Check Out
+                    </a>
+                    <button type="button" class="action-pill border-0 justify-content-center"
+                        data-modal-url="{% url 'hospital_hr:leave_request_create' %}" data-modal-title="Request Leave"
+                        data-modal-size="lg">
+                        <i class="bi bi-calendar-plus text-primary"></i>Request Leave
+                    </button>
+                    <a href="{% url 'hospital_hr:job_public_list' %}" class="action-pill justify-content-center">
+                        <i class="bi bi-briefcase text-secondary"></i>View Open Positions
+                    </a>
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-3">
-                        <a href="{% url 'hospital_hr:attendance_my_view' %}" class="btn btn-success">
-                            <i class="bi bi-clock me-2"></i>Check In / Check Out
-                        </a>
-                        <button type="button" class="btn btn-primary" data-modal-url="{% url 'hospital_hr:leave_request_create' %}" data-modal-title="Request Leave" data-modal-size="lg">
-                            <i class="bi bi-calendar-plus me-2"></i>Request Leave
-                        </button>
-                        <a href="{% url 'hospital_hr:job_public_list' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-briefcase me-2"></i>View Open Positions
-                        </a>
+            </div>
+
+            <!-- Detailed Info Card -->
+            <div class="premium-card">
+                <div class="card-body-clean">
+                    <h5 class="fw-bold mb-4 text-dark">My Data</h5>
+
+                    <div class="mb-4">
+                        <div class="info-label">Email Address</div>
+                        <div class="info-value text-dark">{{ employee.user.email }}</div>
                     </div>
-                    
-                    <hr class="my-4">
-                    
-                    <h6 class="text-muted mb-3">My Information</h6>
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Email</small>
-                        <span>{{ employee.user.email }}</span>
+
+                    <div class="mb-4">
+                        <div class="info-label">Date of Joining</div>
+                        <div class="info-value text-dark">{{ employee.date_of_joining|date:"F d, Y" }}</div>
                     </div>
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Date of Joining</small>
-                        <span>{{ employee.date_of_joining|date:"F d, Y" }}</span>
+
+                    <div class="mb-4">
+                        <div class="info-label">Category</div>
+                        <div class="info-value text-dark">{{ employee.get_category_display }}</div>
                     </div>
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Category</small>
-                        <span>{{ employee.get_category_display }}</span>
-                    </div>
+
                     <div>
-                        <small class="text-muted d-block">Qualification</small>
-                        <span>{{ employee.qualification|default:"Not specified" }}</span>
+                        <div class="info-label">Qualification</div>
+                        <div class="info-value text-dark">{{ employee.qualification|default:"Not specified" }}</div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Leave History -->
+
+        <!-- Leave History Column -->
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">My Leave History</h5>
+            <div class="premium-card">
+                <div class="card-header-clean">
+                    <h5 class="card-title-modern">My Leave History</h5>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Leave Type</th>
-                                    <th>Duration</th>
-                                    <th>Days</th>
-                                    <th>Status</th>
-                                    <th>Requested On</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for leave in my_leaves %}
-                                <tr>
-                                    <td>
-                                        <span class="fw-medium">{{ leave.get_leave_type_display }}</span>
-                                    </td>
-                                    <td>
-                                        {{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}
-                                    </td>
-                                    <td>{{ leave.total_days }}</td>
-                                    <td>
-                                        <span class="badge badge-{{ leave.status }}">{{ leave.get_status_display }}</span>
-                                    </td>
-                                    <td>{{ leave.created_at|date:"M d, Y" }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">
-                                        <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
-                                        No leave requests found
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table-modern">
+                        <thead>
+                            <tr>
+                                <th>Leave Type</th>
+                                <th>Duration</th>
+                                <th>Days</th>
+                                <th>Status</th>
+                                <th>Requested On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in my_leaves %}
+                            <tr>
+                                <td><span class="fw-bold text-dark">{{ leave.get_leave_type_display }}</span></td>
+                                <td>{{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}</td>
+                                <td>{{ leave.total_days }}</td>
+                                <td><span class="badge badge-{{ leave.status }}">{{ leave.get_status_display }}</span>
+                                </td>
+                                <td class="text-muted">{{ leave.created_at|date:"M d, Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-5">No leave requests found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-    
+
     {% else %}
     <!-- No Employee Profile -->
-    <div class="card">
-        <div class="card-body text-center py-5">
-            <div class="empty-state-icon mx-auto mb-4">
-                <i class="bi bi-person-x"></i>
+    <div class="premium-card text-center py-5">
+        <div class="mb-4">
+            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center"
+                style="width: 100px; height: 100px;">
+                <i class="bi bi-person-x fs-1 text-muted"></i>
             </div>
-            <h4>Employee Profile Not Found</h4>
-            <p class="text-muted">Your user account is not linked to an employee profile.</p>
-            <p class="text-muted">Please contact HR to set up your employee profile.</p>
         </div>
+        <h3 class="fw-bold text-dark">Profile Not Found</h3>
+        <p class="text-muted mb-4">Your user account is not linked to an employee profile.</p>
+        <button class="btn btn-primary rounded-pill px-4">Contact HR Support</button>
     </div>
     {% endif %}
 </div>

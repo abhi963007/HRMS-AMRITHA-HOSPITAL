@@ -47,6 +47,12 @@ class EmployeeForm(forms.ModelForm):
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
     password = forms.CharField(widget=forms.PasswordInput(), required=False)
+    role = forms.ChoiceField(choices=User.ROLE_CHOICES, required=True)
+    set_as_dept_head = forms.BooleanField(
+        required=False,
+        label="Set as Department Head",
+        help_text="Make this employee the head of their assigned department"
+    )
     
     class Meta:
         model = Employee
@@ -84,12 +90,19 @@ class EmployeeForm(forms.ModelForm):
             self.fields['email'].initial = self.instance.user.email
             self.fields['first_name'].initial = self.instance.user.first_name
             self.fields['last_name'].initial = self.instance.user.last_name
+            self.fields['role'].initial = self.instance.user.role
             self.fields['password'].required = False
             self.fields['password'].help_text = "Leave blank to keep current password"
+            
+            # Check if this employee is currently a department head
+            if self.instance.department and self.instance.department.head == self.instance.user:
+                self.fields['set_as_dept_head'].initial = True
         
-        for field_name in ['username', 'email', 'first_name', 'last_name', 'password']:
+        for field_name in ['username', 'email', 'first_name', 'last_name', 'password', 'role']:
             if field_name in self.fields:
                 self.fields[field_name].widget.attrs['class'] = 'form-control'
+        
+        self.fields['set_as_dept_head'].widget.attrs['class'] = 'form-check-input'
 
 
 class JobForm(forms.ModelForm):

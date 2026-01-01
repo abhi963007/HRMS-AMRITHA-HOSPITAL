@@ -52,4 +52,8 @@ urlpatterns = [
     path('attendance/check-out/', views.attendance_check_out, name='attendance_check_out'),
     path('attendance/report/', views.attendance_report, name='attendance_report'),
     path('attendance/export/', views.attendance_export_csv, name='attendance_export_csv'),
+    
+    # AI Assistant
+    path('ai-assistant/', views.ai_assistant_view, name='ai_assistant'),
+    path('ai-assistant/query/', views.ai_assistant_query, name='ai_assistant_query'),
 ]

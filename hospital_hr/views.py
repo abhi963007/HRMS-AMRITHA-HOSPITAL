@@ -5,8 +5,10 @@ from django.contrib import messages
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from datetime import datetime, timedelta
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_POST
 import csv
+import json
 from .models import User, Department, Employee, Job, Application, LeaveRequest, Attendance
 from .forms import (
     UserLoginForm, UserRegistrationForm, DepartmentForm, EmployeeForm,
@@ -17,6 +19,7 @@ from .decorators import (
     role_required, admin_required, hr_or_admin_required,
     dept_head_or_admin_required, staff_required
 )
+from .ai_assistant import HRQueryProcessor, GroqAIClient
 
 
 def landing_view(request):
@@ -83,33 +86,60 @@ def dashboard_view(request):
 
 
 def admin_dashboard(request):
+    from django.core.paginator import Paginator
+    
     total_departments = Department.objects.filter(is_active=True).count()
     total_employees = Employee.objects.filter(status='active').count()
     total_jobs = Job.objects.filter(status='open').count()
     total_applications = Application.objects.filter(status='submitted').count()
-    
-    employees_by_category = Employee.objects.filter(status='active').values('category').annotate(
-        count=Count('id')
-    ).order_by('-count')
-    
-    employees_by_department = Employee.objects.filter(status='active').values(
-        'department__name'
-    ).annotate(count=Count('id')).order_by('-count')[:5]
-    
     employees_on_leave = Employee.objects.filter(status='on_leave').count()
     
-    recent_employees = Employee.objects.filter(status='active').select_related('user', 'department')[:5]
-    pending_leaves = LeaveRequest.objects.filter(status='pending')[:5]
-    recent_applications = Application.objects.filter(status='submitted').select_related('job')[:5]
+    # Pagination for Staff by Category
+    category_page = request.GET.get('category_page', 1)
+    employees_by_category_list = Employee.objects.filter(status='active').values('category').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    category_paginator = Paginator(employees_by_category_list, 5)
+    employees_by_category = category_paginator.get_page(category_page)
+    
+    # Pagination for Top Departments
+    dept_page = request.GET.get('dept_page', 1)
+    employees_by_department_list = Employee.objects.filter(status='active').values(
+        'department__name'
+    ).annotate(count=Count('id')).order_by('-count')
+    dept_paginator = Paginator(employees_by_department_list, 5)
+    employees_by_department = dept_paginator.get_page(dept_page)
+    
+    # Calculate width percentage for each department
+    for item in employees_by_department:
+        item['width_percentage'] = (item['count'] / total_employees) * 100 if total_employees > 0 else 0
+    
+    # Pagination for Recent Employees
+    emp_page = request.GET.get('emp_page', 1)
+    recent_employees_list = Employee.objects.filter(status='active').select_related('user', 'department').order_by('-created_at')
+    emp_paginator = Paginator(recent_employees_list, 5)
+    recent_employees = emp_paginator.get_page(emp_page)
+    
+    # Pagination for Pending Leave Requests
+    leave_page = request.GET.get('leave_page', 1)
+    pending_leaves_list = LeaveRequest.objects.filter(status='pending').select_related('employee__user').order_by('-created_at')
+    leave_paginator = Paginator(pending_leaves_list, 5)
+    pending_leaves = leave_paginator.get_page(leave_page)
+    
+    # Pagination for Recent Applications
+    app_page = request.GET.get('app_page', 1)
+    recent_applications_list = Application.objects.filter(status='submitted').select_related('job').order_by('-applied_date')
+    app_paginator = Paginator(recent_applications_list, 5)
+    recent_applications = app_paginator.get_page(app_page)
     
     context = {
         'total_departments': total_departments,
         'total_employees': total_employees,
         'total_jobs': total_jobs,
         'total_applications': total_applications,
+        'employees_on_leave': employees_on_leave,
         'employees_by_category': employees_by_category,
         'employees_by_department': employees_by_department,
-        'employees_on_leave': employees_on_leave,
         'recent_employees': recent_employees,
         'pending_leaves': pending_leaves,
         'recent_applications': recent_applications,
@@ -316,7 +346,7 @@ def employee_create(request):
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name'],
                 password=form.cleaned_data.get('password', 'temppass123'),
-                role='staff'
+                role=form.cleaned_data['role']
             )
             
             employee = form.save(commit=False)
@@ -325,7 +355,14 @@ def employee_create(request):
             user.save()
             employee.save()
             
-            messages.success(request, 'Employee created successfully!')
+            # Handle department head assignment
+            if form.cleaned_data.get('set_as_dept_head') and employee.department:
+                employee.department.head = user
+                employee.department.save()
+                messages.success(request, f'Employee created and set as head of {employee.department.name}!')
+            else:
+                messages.success(request, 'Employee created successfully!')
+            
             return redirect('hospital_hr:employee_list')
     else:
         form = EmployeeForm()
@@ -349,6 +386,7 @@ def employee_edit(request, pk):
             user.email = form.cleaned_data['email']
             user.first_name = form.cleaned_data['first_name']
             user.last_name = form.cleaned_data['last_name']
+            user.role = form.cleaned_data['role']
             
             if form.cleaned_data.get('password'):
                 user.set_password(form.cleaned_data['password'])
@@ -360,7 +398,28 @@ def employee_edit(request, pk):
             user.save()
             employee.save()
             
-            messages.success(request, 'Employee updated successfully!')
+            # Handle department head assignment
+            success_msg = 'Employee updated successfully!'
+            if employee.department:
+                if form.cleaned_data.get('set_as_dept_head'):
+                    # Set this employee as department head
+                    employee.department.head = user
+                    employee.department.save()
+                    success_msg = f'Employee updated and set as head of {employee.department.name}!'
+                else:
+                    # Remove as department head if they were previously
+                    if employee.department.head == user:
+                        employee.department.head = None
+                        employee.department.save()
+                        success_msg = 'Employee updated and removed as department head!'
+            
+            messages.success(request, success_msg)
+            
+            # Check if this is an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({'success': True, 'message': success_msg})
+            
             return redirect('hospital_hr:employee_list')
     else:
         form = EmployeeForm(instance=employee, instance_user=employee.user)
@@ -1079,3 +1138,66 @@ def attendance_export_csv(request):
         ])
     
     return response
+
+
+# =============================================================================
+# AI ASSISTANT VIEWS
+# =============================================================================
+
+@login_required
+@hr_or_admin_required
+def ai_assistant_view(request):
+    """Main AI Assistant chat interface - HR/Admin only"""
+    context = {
+        'suggested_queries': [
+            "How many employees are on leave today?",
+            "Show attendance summary for today",
+            "Which department has the most absentees?",
+            "How many job applications are pending?",
+            "List all open positions",
+            "Show pending leave requests",
+        ]
+    }
+    return render(request, 'hospital_hr/ai_assistant.html', context)
+
+
+@login_required
+@hr_or_admin_required
+@require_POST
+def ai_assistant_query(request):
+    """Process AI Assistant queries via AJAX - HR/Admin only"""
+    try:
+        data = json.loads(request.body)
+        query = data.get('query', '').strip()
+        
+        if not query:
+            return JsonResponse({
+                'success': False,
+                'error': 'Please enter a question.'
+            })
+        
+        # Process the query using RAG
+        processor = HRQueryProcessor(request.user)
+        query_result = processor.process_query(query)
+        
+        # Generate AI response
+        ai_client = GroqAIClient()
+        response_text = ai_client.generate_response(query, query_result['context'])
+        
+        return JsonResponse({
+            'success': True,
+            'response': response_text,
+            'query_type': query_result['query_type'],
+            'timestamp': query_result['timestamp']
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid request format.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'An error occurred: {str(e)}'
+        })
