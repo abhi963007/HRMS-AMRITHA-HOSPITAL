@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,13 +11,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="{% static 'hospital_hr/css/style.css' %}" rel="stylesheet">
 </head>
+
 <body class="public-page">
     <!-- Navigation -->
     <nav class="public-nav">
         <div class="container">
             <a href="{% url 'hospital_hr:landing' %}" class="landing-logo">
-                <i class="bi bi-hospital-fill"></i>
-                <span>Amrita Hospital</span>
+                <img src="{% static 'hospital_hr/images/logo.svg' %}" alt="Amrita Hospital" class="nav-logo">
             </a>
             <div class="d-flex gap-3">
                 <a href="{% url 'hospital_hr:job_public_detail' job.pk %}" class="btn btn-outline-secondary">
@@ -45,12 +46,12 @@
                         <div class="card-body p-4">
                             <form method="post" enctype="multipart/form-data">
                                 {% csrf_token %}
-                                
+
                                 <!-- Personal Information -->
                                 <h5 class="mb-4 pb-2 border-bottom">
                                     <i class="bi bi-person me-2"></i>Personal Information
                                 </h5>
-                                
+
                                 <div class="row g-3 mb-4">
                                     <div class="col-12">
                                         <label for="id_applicant_name" class="form-label">Full Name *</label>
@@ -69,12 +70,12 @@
                                         {{ form.date_of_birth }}
                                     </div>
                                 </div>
-                                
+
                                 <!-- Professional Details -->
                                 <h5 class="mb-4 pb-2 border-bottom">
                                     <i class="bi bi-mortarboard me-2"></i>Professional Details
                                 </h5>
-                                
+
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-6">
                                         <label for="id_qualification" class="form-label">Highest Qualification *</label>
@@ -85,56 +86,62 @@
                                         {{ form.specialization }}
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="id_experience_years" class="form-label">Years of Experience *</label>
+                                        <label for="id_experience_years" class="form-label">Years of Experience
+                                            *</label>
                                         {{ form.experience_years }}
                                     </div>
                                 </div>
-                                
+
                                 <!-- Current Employment -->
                                 <h5 class="mb-4 pb-2 border-bottom">
                                     <i class="bi bi-building me-2"></i>Current Employment
                                 </h5>
-                                
+
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-6">
                                         <label for="id_current_employer" class="form-label">Current Employer</label>
                                         {{ form.current_employer }}
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="id_current_designation" class="form-label">Current Designation</label>
+                                        <label for="id_current_designation" class="form-label">Current
+                                            Designation</label>
                                         {{ form.current_designation }}
                                     </div>
                                 </div>
-                                
+
                                 <!-- Documents -->
                                 <h5 class="mb-4 pb-2 border-bottom">
                                     <i class="bi bi-file-earmark-text me-2"></i>Documents
                                 </h5>
-                                
+
                                 <div class="row g-3 mb-4">
                                     <div class="col-12">
                                         <label for="id_resume" class="form-label">Resume/CV *</label>
                                         {{ form.resume }}
-                                        <small class="text-muted d-block mt-1">Upload your resume (PDF, DOC, DOCX - Max 5MB)</small>
+                                        <small class="text-muted d-block mt-1">Upload your resume (PDF, DOC, DOCX - Max
+                                            5MB)</small>
                                     </div>
                                     <div class="col-12">
                                         <label for="id_cover_letter" class="form-label">Cover Letter</label>
                                         {{ form.cover_letter }}
-                                        <small class="text-muted d-block mt-1">Tell us why you're interested in this position</small>
+                                        <small class="text-muted d-block mt-1">Tell us why you're interested in this
+                                            position</small>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Submit -->
                                 <div class="alert alert-info">
                                     <i class="bi bi-info-circle me-2"></i>
-                                    By submitting this application, you confirm that all information provided is accurate and complete.
+                                    By submitting this application, you confirm that all information provided is
+                                    accurate and complete.
                                 </div>
-                                
+
                                 <div class="d-flex gap-2">
                                     <button type="submit" class="btn btn-primary btn-lg">
                                         <i class="bi bi-send me-2"></i>Submit Application
                                     </button>
-                                    <a href="{% url 'hospital_hr:job_public_detail' job.pk %}" class="btn btn-outline-secondary btn-lg">
+                                    <a href="{% url 'hospital_hr:job_public_detail' job.pk %}"
+                                        class="btn btn-outline-secondary btn-lg">
                                         Cancel
                                     </a>
                                 </div>
@@ -155,4 +162,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

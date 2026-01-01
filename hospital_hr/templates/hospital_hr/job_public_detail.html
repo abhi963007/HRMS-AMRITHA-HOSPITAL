@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,13 +11,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="{% static 'hospital_hr/css/style.css' %}" rel="stylesheet">
 </head>
+
 <body class="public-page">
     <!-- Navigation -->
     <nav class="public-nav">
         <div class="container">
             <a href="{% url 'hospital_hr:landing' %}" class="landing-logo">
-                <i class="bi bi-hospital-fill"></i>
-                <span>Amrita Hospital</span>
+                <img src="{% static 'hospital_hr/images/logo.svg' %}" alt="Amrita Hospital" class="nav-logo">
             </a>
             <div class="d-flex gap-3">
                 <a href="{% url 'hospital_hr:job_public_list' %}" class="btn btn-outline-secondary">
@@ -35,7 +36,8 @@
             <div class="text-white">
                 <nav aria-label="breadcrumb" class="mb-3">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hospital_hr:job_public_list' %}" class="text-white-50">Careers</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hospital_hr:job_public_list' %}"
+                                class="text-white-50">Careers</a></li>
                         <li class="breadcrumb-item active text-white" aria-current="page">{{ job.title }}</li>
                     </ol>
                 </nav>
@@ -57,18 +59,18 @@
                         <div class="card-body">
                             <h5 class="mb-4">Job Description</h5>
                             <p style="white-space: pre-line;">{{ job.description }}</p>
-                            
+
                             {% if job.responsibilities %}
                             <h5 class="mt-4 mb-3">Key Responsibilities</h5>
                             <p style="white-space: pre-line;">{{ job.responsibilities }}</p>
                             {% endif %}
-                            
+
                             <h5 class="mt-4 mb-3">Requirements</h5>
                             <p style="white-space: pre-line;">{{ job.requirements }}</p>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Sidebar -->
                 <div class="col-lg-4">
                     <!-- Job Summary -->
@@ -94,12 +96,15 @@
                                 <span class="fw-medium">{{ job.min_experience }}+ years</span>
                             </div>
                             <div class="mb-3">
-                                <small class="text-muted d-block"><i class="bi bi-mortarboard me-1"></i>Qualification</small>
+                                <small class="text-muted d-block"><i
+                                        class="bi bi-mortarboard me-1"></i>Qualification</small>
                                 <span class="fw-medium">{{ job.min_qualification }}</span>
                             </div>
                             <div class="mb-3">
-                                <small class="text-muted d-block"><i class="bi bi-currency-rupee me-1"></i>Salary Range</small>
-                                <span class="fw-medium">₹{{ job.salary_min|floatformat:0 }} - ₹{{ job.salary_max|floatformat:0 }}</span>
+                                <small class="text-muted d-block"><i class="bi bi-currency-rupee me-1"></i>Salary
+                                    Range</small>
+                                <span class="fw-medium">₹{{ job.salary_min|floatformat:0 }} - ₹{{
+                                    job.salary_max|floatformat:0 }}</span>
                             </div>
                             <div class="mb-3">
                                 <small class="text-muted d-block"><i class="bi bi-geo-alt me-1"></i>Location</small>
@@ -107,13 +112,14 @@
                             </div>
                             {% if job.closing_date %}
                             <div>
-                                <small class="text-muted d-block"><i class="bi bi-calendar-x me-1"></i>Apply Before</small>
+                                <small class="text-muted d-block"><i class="bi bi-calendar-x me-1"></i>Apply
+                                    Before</small>
                                 <span class="fw-medium text-danger">{{ job.closing_date|date:"F d, Y" }}</span>
                             </div>
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     <!-- Apply Button -->
                     <div class="card">
                         <div class="card-body text-center">
@@ -140,4 +146,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

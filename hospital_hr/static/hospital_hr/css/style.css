@@ -132,34 +132,19 @@ a {
 .logo-container {
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
 }
 
-.logo-icon {
-    font-size: 32px;
-    color: var(--primary-light);
-    /* Softer red against dark bg */
+.sidebar-logo {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    transition: var(--transition);
 }
 
-.logo-text {
-    display: flex;
-    flex-direction: column;
-}
-
-.logo-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: #FFFFFF;
-    letter-spacing: -0.5px;
-}
-
-.logo-subtitle {
-    font-size: 11px;
-    color: var(--text-tertiary);
-    /* Muted slate */
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: 500;
+.sidebar-logo:hover {
+    filter: brightness(1.1);
+    transform: scale(1.02);
 }
 
 /* Sidebar Navigation */
@@ -997,28 +982,18 @@ textarea.form-control {
 .landing-logo {
     display: flex;
     align-items: center;
-    gap: 12px;
     text-decoration: none;
 }
 
-.logo-icon-wrapper {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--primary) 0%, #FF5252 100%);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 20px;
-    box-shadow: 0 4px 12px rgba(198, 40, 40, 0.3);
+.nav-logo {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+    transition: var(--transition);
 }
 
-.landing-logo span {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--dark);
-    letter-spacing: -0.5px;
+.nav-logo:hover {
+    transform: scale(1.05);
 }
 
 .btn-pill {
@@ -1201,6 +1176,14 @@ textarea.form-control {
     }
 }
 
+.animate-float {
+    animation: floatCard 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+    animation: floatCard 8s ease-in-out infinite reverse;
+}
+
 /* Features Section (Modern) */
 .features-section {
     padding: 100px 0;
@@ -1266,11 +1249,11 @@ textarea.form-control {
 
 .login-left {
     flex: 1;
-    background: #101828;
+    background: linear-gradient(135deg, #1a1f36 0%, #0f1419 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 40px;
+    padding: 60px 40px;
     position: relative;
     overflow: hidden;
 }
@@ -1284,8 +1267,10 @@ textarea.form-control {
     width: 100%;
     height: 100%;
     background:
-        radial-gradient(circle at 10% 20%, rgba(198, 40, 40, 0.2) 0%, transparent 20%),
-        radial-gradient(circle at 90% 80%, rgba(2, 119, 189, 0.2) 0%, transparent 20%);
+        radial-gradient(circle at 10% 20%, rgba(198, 40, 40, 0.15) 0%, transparent 30%),
+        radial-gradient(circle at 90% 80%, rgba(198, 40, 40, 0.1) 0%, transparent 25%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+    pointer-events: none;
 }
 
 .login-branding {
@@ -1293,27 +1278,29 @@ textarea.form-control {
     z-index: 1;
     text-align: center;
     color: #FFFFFF;
+    max-width: 500px;
 }
 
 .login-branding i {
-    font-size: 64px;
-    margin-bottom: 32px;
-    display: block;
+    font-size: 72px;
     color: var(--primary);
+    display: inline-block;
+    filter: drop-shadow(0 4px 12px rgba(198, 40, 40, 0.4));
 }
 
 .login-branding h1 {
-    font-size: 48px;
+    font-size: 42px;
     font-weight: 700;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
     letter-spacing: -1px;
+    color: #FFFFFF;
 }
 
 .login-branding p {
-    font-size: 20px;
-    opacity: 0.8;
-    max-width: 480px;
+    font-size: 18px;
+    opacity: 0.85;
     line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .login-right {
