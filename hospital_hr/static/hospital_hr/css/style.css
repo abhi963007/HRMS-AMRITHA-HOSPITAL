@@ -136,7 +136,7 @@ a {
 }
 
 .sidebar-logo {
-    max-width: 100%;
+    max-width: 160px;
     height: auto;
     border-radius: var(--radius);
     transition: var(--transition);

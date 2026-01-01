@@ -27,13 +27,13 @@
                 <label class="form-label small text-muted">Category</label>
                 <select name="category" class="form-select form-select-sm">
                     <option value="">All Categories</option>
-                    <option value="medical" {% if request.GET.category=='medical' %}selected{% endif %}>Medical Staff
+                    <option value="medical" {% if request.GET.category == 'medical' %}selected{% endif %}>Medical Staff
                     </option>
-                    <option value="nursing" {% if request.GET.category=='nursing' %}selected{% endif %}>Nursing Staff
+                    <option value="nursing" {% if request.GET.category == 'nursing' %}selected{% endif %}>Nursing Staff
                     </option>
-                    <option value="paramedical" {% if request.GET.category=='paramedical' %}selected{% endif %}>
+                    <option value="paramedical" {% if request.GET.category == 'paramedical' %}selected{% endif %}>
                         Paramedical & Technical</option>
-                    <option value="admin_support" {% if request.GET.category=='admin_support' %}selected{% endif %}>
+                    <option value="admin_support" {% if request.GET.category == 'admin_support' %}selected{% endif %}>
                         Admin & Support</option>
                 </select>
             </div>
@@ -42,8 +42,7 @@
                 <select name="department" class="form-select form-select-sm">
                     <option value="">All Departments</option>
                     {% for dept in departments %}
-                    <option value="{{ dept.pk }}" {% if request.GET.department==dept.pk|stringformat:"i" %}selected{%
-                        endif %}>{{ dept.name }}</option>
+                    <option value="{{ dept.pk }}" {% if request.GET.department == dept.pk|stringformat:"i" %}selected{% endif %}>{{ dept.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -51,10 +50,10 @@
                 <label class="form-label small text-muted">Status</label>
                 <select name="status" class="form-select form-select-sm">
                     <option value="">All Status</option>
-                    <option value="active" {% if request.GET.status=='active' %}selected{% endif %}>Active</option>
-                    <option value="on_leave" {% if request.GET.status=='on_leave' %}selected{% endif %}>On Leave
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="on_leave" {% if request.GET.status == 'on_leave' %}selected{% endif %}>On Leave
                     </option>
-                    <option value="suspended" {% if request.GET.status=='suspended' %}selected{% endif %}>Suspended
+                    <option value="suspended" {% if request.GET.status == 'suspended' %}selected{% endif %}>Suspended
                     </option>
                 </select>
             </div>
