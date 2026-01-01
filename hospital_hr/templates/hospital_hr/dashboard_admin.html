@@ -19,7 +19,7 @@
                 <div class="metric-label">Total Employees</div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6">
             <div class="metric-card secondary">
                 <div class="metric-card-header">
@@ -31,7 +31,7 @@
                 <div class="metric-label">Active Departments</div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6">
             <div class="metric-card success">
                 <div class="metric-card-header">
@@ -43,7 +43,7 @@
                 <div class="metric-label">Open Jobs</div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6">
             <div class="metric-card warning">
                 <div class="metric-card-header">
@@ -56,7 +56,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Charts Row -->
     <div class="row g-4 mb-4">
         <!-- Staff by Category -->
@@ -69,8 +69,10 @@
                     {% for item in employees_by_category %}
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-circle p-2 {% if item.category == 'medical' %}bg-primary bg-opacity-10 text-primary{% elif item.category == 'nursing' %}bg-info bg-opacity-10 text-info{% elif item.category == 'paramedical' %}bg-success bg-opacity-10 text-success{% else %}bg-secondary bg-opacity-10 text-secondary{% endif %}">
-                                <i class="bi {% if item.category == 'medical' %}bi-heart-pulse{% elif item.category == 'nursing' %}bi-bandaid{% elif item.category == 'paramedical' %}bi-clipboard2-pulse{% else %}bi-person-badge{% endif %}"></i>
+                            <div
+                                class="rounded-circle p-2 {% if item.category == 'medical' %}bg-primary-subtle{% elif item.category == 'nursing' %}bg-info-subtle{% elif item.category == 'paramedical' %}bg-success-subtle{% else %}bg-secondary-subtle{% endif %}">
+                                <i
+                                    class="bi {% if item.category == 'medical' %}bi-heart-pulse{% elif item.category == 'nursing' %}bi-bandaid{% elif item.category == 'paramedical' %}bi-clipboard2-pulse{% else %}bi-person-badge{% endif %}"></i>
                             </div>
                             <span class="fw-medium text-capitalize">{{ item.category|default:"Unknown" }}</span>
                         </div>
@@ -85,7 +87,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Staff by Department -->
         <div class="col-lg-6">
             <div class="card h-100">
@@ -100,7 +102,8 @@
                             <span class="text-muted">{{ item.count }}</span>
                         </div>
                         <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-primary" role="progressbar" style="width: {% widthratio item.count total_employees 100 %}%"></div>
+                            <div class="progress-bar bg-primary" role="progressbar"
+                                style="width: {% widthratio item.count total_employees 100 %}%"></div>
                         </div>
                     </div>
                     {% empty %}
@@ -113,7 +116,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Tables Row -->
     <div class="row g-4">
         <!-- Recent Employees -->
@@ -138,7 +141,8 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                                            <div class="rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center"
+                                                style="width: 36px; height: 36px;">
                                                 {{ emp.user.first_name|slice:":1" }}{{ emp.user.last_name|slice:":1" }}
                                             </div>
                                             <div>
@@ -163,13 +167,14 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Pending Leave Requests -->
         <div class="col-lg-6">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Pending Leave Requests</h5>
-                    <a href="{% url 'hospital_hr:leave_request_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <a href="{% url 'hospital_hr:leave_request_list' %}" class="btn btn-sm btn-outline-primary">View
+                        All</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -189,7 +194,9 @@
                                     <td>{{ leave.get_leave_type_display }}</td>
                                     <td>{{ leave.total_days }} day{{ leave.total_days|pluralize }}</td>
                                     <td>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" data-modal-url="{% url 'hospital_hr:leave_request_approve' leave.pk %}" data-modal-title="Review Leave Request" data-modal-size="lg">
+                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                            data-modal-url="{% url 'hospital_hr:leave_request_approve' leave.pk %}"
+                                            data-modal-title="Review Leave Request" data-modal-size="lg">
                                             Review
                                         </button>
                                     </td>
@@ -206,14 +213,15 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Recent Applications -->
     <div class="row g-4 mt-0">
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Recent Job Applications</h5>
-                    <a href="{% url 'hospital_hr:application_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <a href="{% url 'hospital_hr:application_list' %}" class="btn btn-sm btn-outline-primary">View
+                        All</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -240,7 +248,9 @@
                                         <span class="badge badge-{{ app.status }}">{{ app.get_status_display }}</span>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" data-modal-url="{% url 'hospital_hr:application_detail' app.pk %}" data-modal-title="Review Application" data-modal-size="xl">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            data-modal-url="{% url 'hospital_hr:application_detail' app.pk %}"
+                                            data-modal-title="Review Application" data-modal-size="xl">
                                             <i class="bi bi-eye"></i>
                                         </button>
                                     </td>

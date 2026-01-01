@@ -19,7 +19,7 @@
                 <div class="metric-label">Total Employees</div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6">
             <div class="metric-card secondary">
                 <div class="metric-card-header">
@@ -31,7 +31,7 @@
                 <div class="metric-label">Open Positions</div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6">
             <div class="metric-card success">
                 <div class="metric-card-header">
@@ -43,7 +43,7 @@
                 <div class="metric-label">Total Applications</div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6">
             <div class="metric-card warning">
                 <div class="metric-card-header">
@@ -56,7 +56,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Quick Actions -->
     <div class="row g-4 mb-4">
         <div class="col-12">
@@ -64,10 +64,14 @@
                 <div class="card-body">
                     <h6 class="text-muted mb-3">Quick Actions</h6>
                     <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-primary" data-modal-url="{% url 'hospital_hr:employee_create' %}" data-modal-title="Add Employee" data-modal-size="xl">
+                        <button type="button" class="btn btn-primary"
+                            data-modal-url="{% url 'hospital_hr:employee_create' %}" data-modal-title="Add Employee"
+                            data-modal-size="xl">
                             <i class="bi bi-person-plus me-2"></i>Add Employee
                         </button>
-                        <button type="button" class="btn btn-secondary" data-modal-url="{% url 'hospital_hr:job_create' %}" data-modal-title="Post New Job" data-modal-size="xl">
+                        <button type="button" class="btn btn-secondary"
+                            data-modal-url="{% url 'hospital_hr:job_create' %}" data-modal-title="Post New Job"
+                            data-modal-size="xl">
                             <i class="bi bi-briefcase me-2"></i>Post New Job
                         </button>
                         <a href="{% url 'hospital_hr:application_list' %}" class="btn btn-outline-primary">
@@ -81,7 +85,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Staff Distribution -->
     <div class="row g-4 mb-4">
         <div class="col-lg-6">
@@ -93,8 +97,10 @@
                     {% for item in employees_by_category %}
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="rounded p-2 {% if item.category == 'medical' %}bg-primary bg-opacity-10 text-primary{% elif item.category == 'nursing' %}bg-info bg-opacity-10 text-info{% elif item.category == 'paramedical' %}bg-success bg-opacity-10 text-success{% else %}bg-secondary bg-opacity-10 text-secondary{% endif %}">
-                                <i class="bi {% if item.category == 'medical' %}bi-heart-pulse{% elif item.category == 'nursing' %}bi-bandaid{% elif item.category == 'paramedical' %}bi-clipboard2-pulse{% else %}bi-person-badge{% endif %}"></i>
+                            <div
+                                class="rounded p-2 {% if item.category == 'medical' %}bg-primary-subtle{% elif item.category == 'nursing' %}bg-info-subtle{% elif item.category == 'paramedical' %}bg-success-subtle{% else %}bg-secondary-subtle{% endif %}">
+                                <i
+                                    class="bi {% if item.category == 'medical' %}bi-heart-pulse{% elif item.category == 'nursing' %}bi-bandaid{% elif item.category == 'paramedical' %}bi-clipboard2-pulse{% else %}bi-person-badge{% endif %}"></i>
                             </div>
                             <span class="fw-medium text-capitalize">{{ item.category|default:"Unknown" }}</span>
                         </div>
@@ -109,7 +115,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-6">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -119,13 +125,15 @@
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
                         {% for job in open_jobs %}
-                        <a href="{% url 'hospital_hr:job_detail' job.pk %}" class="list-group-item list-group-item-action">
+                        <a href="{% url 'hospital_hr:job_detail' job.pk %}"
+                            class="list-group-item list-group-item-action">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="fw-medium">{{ job.title }}</div>
                                     <small class="text-muted">{{ job.department.name }}</small>
                                 </div>
-                                <span class="badge bg-primary">{{ job.vacancies }} opening{{ job.vacancies|pluralize }}</span>
+                                <span class="badge bg-primary">{{ job.vacancies }} opening{{ job.vacancies|pluralize
+                                    }}</span>
                             </div>
                         </a>
                         {% empty %}
@@ -139,7 +147,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Tables Row -->
     <div class="row g-4">
         <!-- Recent Applications -->
@@ -147,7 +155,8 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Recent Applications</h5>
-                    <a href="{% url 'hospital_hr:application_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <a href="{% url 'hospital_hr:application_list' %}" class="btn btn-sm btn-outline-primary">View
+                        All</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -174,7 +183,9 @@
                                         <span class="badge badge-{{ app.status }}">{{ app.get_status_display }}</span>
                                     </td>
                                     <td>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" data-modal-url="{% url 'hospital_hr:application_detail' app.pk %}" data-modal-title="Review Application" data-modal-size="xl">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            data-modal-url="{% url 'hospital_hr:application_detail' app.pk %}"
+                                            data-modal-title="Review Application" data-modal-size="xl">
                                             <i class="bi bi-eye"></i>
                                         </button>
                                     </td>
@@ -190,18 +201,21 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Pending Leaves -->
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Pending Leaves</h5>
-                    <a href="{% url 'hospital_hr:leave_request_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <a href="{% url 'hospital_hr:leave_request_list' %}" class="btn btn-sm btn-outline-primary">View
+                        All</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
                         {% for leave in pending_leaves %}
-                        <div class="list-group-item list-group-item-action" style="cursor: pointer;" data-modal-url="{% url 'hospital_hr:leave_request_approve' leave.pk %}" data-modal-title="Review Leave Request" data-modal-size="lg">
+                        <div class="list-group-item list-group-item-action" style="cursor: pointer;"
+                            data-modal-url="{% url 'hospital_hr:leave_request_approve' leave.pk %}"
+                            data-modal-title="Review Leave Request" data-modal-size="lg">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <div class="fw-medium">{{ leave.employee.user.get_full_name }}</div>

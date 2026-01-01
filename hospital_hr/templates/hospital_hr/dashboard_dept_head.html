@@ -11,20 +11,22 @@
     <div class="card mb-4">
         <div class="card-body">
             <div class="d-flex align-items-center gap-4">
-                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                <div class="rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center"
+                    style="width: 64px; height: 64px;">
                     <i class="bi bi-building fs-3"></i>
                 </div>
                 <div>
                     <h4 class="mb-1">{{ department.name }}</h4>
                     <p class="text-muted mb-0">
                         <i class="bi bi-geo-alt me-1"></i>{{ department.get_location_display }}
-                        {% if department.phone %}<span class="mx-2">|</span><i class="bi bi-telephone me-1"></i>{{ department.phone }}{% endif %}
+                        {% if department.phone %}<span class="mx-2">|</span><i class="bi bi-telephone me-1"></i>{{
+                        department.phone }}{% endif %}
                     </p>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Metric Cards -->
     <div class="row g-4 mb-4">
         <div class="col-xl-4 col-md-6">
@@ -38,7 +40,7 @@
                 <div class="metric-label">Total Staff</div>
             </div>
         </div>
-        
+
         <div class="col-xl-4 col-md-6">
             <div class="metric-card success">
                 <div class="metric-card-header">
@@ -50,7 +52,7 @@
                 <div class="metric-label">On Duty</div>
             </div>
         </div>
-        
+
         <div class="col-xl-4 col-md-6">
             <div class="metric-card warning">
                 <div class="metric-card-header">
@@ -63,7 +65,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Tables Row -->
     <div class="row g-4">
         <!-- Department Staff -->
@@ -88,7 +90,8 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 12px;">
+                                            <div class="rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center"
+                                                style="width: 36px; height: 36px; font-size: 12px;">
                                                 {{ emp.user.first_name|slice:":1" }}{{ emp.user.last_name|slice:":1" }}
                                             </div>
                                             <div>
@@ -114,7 +117,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Pending Leave Requests -->
         <div class="col-lg-4">
             <div class="card">
@@ -135,7 +138,9 @@
                             <div class="small text-muted mb-2">
                                 {{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary w-100" data-modal-url="{% url 'hospital_hr:leave_request_approve' leave.pk %}" data-modal-title="Review Leave Request" data-modal-size="lg">
+                            <button type="button" class="btn btn-sm btn-outline-primary w-100"
+                                data-modal-url="{% url 'hospital_hr:leave_request_approve' leave.pk %}"
+                                data-modal-title="Review Leave Request" data-modal-size="lg">
                                 Review Request
                             </button>
                         </div>
@@ -150,7 +155,7 @@
             </div>
         </div>
     </div>
-    
+
     {% else %}
     <!-- No Department Assigned -->
     <div class="card">

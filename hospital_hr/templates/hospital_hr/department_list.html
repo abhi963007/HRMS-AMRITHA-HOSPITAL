@@ -11,14 +11,16 @@
         <div class="table-actions">
             <div class="search-box">
                 <i class="bi bi-search"></i>
-                <input type="text" class="table-search" data-table="departmentsTable" placeholder="Search departments...">
+                <input type="text" class="table-search" data-table="departmentsTable"
+                    placeholder="Search departments...">
             </div>
-            <button type="button" class="btn btn-primary" data-modal-url="{% url 'hospital_hr:department_create' %}" data-modal-title="Add Department" data-modal-size="lg">
+            <button type="button" class="btn btn-primary" data-modal-url="{% url 'hospital_hr:department_create' %}"
+                data-modal-title="Add Department" data-modal-size="lg">
                 <i class="bi bi-plus-lg"></i> Add Department
             </button>
         </div>
     </div>
-    
+
     <div class="table-responsive">
         <table class="table table-hover" id="departmentsTable">
             <thead>
@@ -37,7 +39,8 @@
                 <tr>
                     <td>
                         <div class="d-flex align-items-center gap-3">
-                            <div class="rounded bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <div class="rounded bg-primary-subtle d-flex align-items-center justify-content-center"
+                                style="width: 40px; height: 40px;">
                                 <i class="bi bi-building"></i>
                             </div>
                             <div>
@@ -62,10 +65,14 @@
                     </td>
                     <td>
                         <div class="d-flex gap-1">
-                            <button type="button" class="btn btn-icon btn-sm btn-outline-secondary" title="Edit" data-modal-url="{% url 'hospital_hr:department_edit' dept.pk %}" data-modal-title="Edit Department" data-modal-size="lg">
+                            <button type="button" class="btn btn-icon btn-sm btn-outline-secondary" title="Edit"
+                                data-modal-url="{% url 'hospital_hr:department_edit' dept.pk %}"
+                                data-modal-title="Edit Department" data-modal-size="lg">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button type="button" class="btn btn-icon btn-sm btn-outline-danger" title="Delete" data-delete-url="{% url 'hospital_hr:department_delete' dept.pk %}" data-delete-message="Are you sure you want to delete {{ dept.name }}?">
+                            <button type="button" class="btn btn-icon btn-sm btn-outline-danger" title="Delete"
+                                data-delete-url="{% url 'hospital_hr:department_delete' dept.pk %}"
+                                data-delete-message="Are you sure you want to delete {{ dept.name }}?">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -80,7 +87,9 @@
                             </div>
                             <h5 class="empty-state-title">No Departments Found</h5>
                             <p class="empty-state-description">Get started by creating your first department.</p>
-                            <button type="button" class="btn btn-primary" data-modal-url="{% url 'hospital_hr:department_create' %}" data-modal-title="Add Department" data-modal-size="lg">
+                            <button type="button" class="btn btn-primary"
+                                data-modal-url="{% url 'hospital_hr:department_create' %}"
+                                data-modal-title="Add Department" data-modal-size="lg">
                                 <i class="bi bi-plus-lg me-2"></i>Add Department
                             </button>
                         </div>

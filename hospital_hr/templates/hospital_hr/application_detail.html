@@ -11,15 +11,16 @@
         <div class="card">
             <div class="card-body">
                 <div class="text-center mb-4">
-                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; font-size: 28px;">
+                    <div class="rounded-circle bg-primary-subtle d-inline-flex align-items-center justify-content-center mb-3"
+                        style="width: 80px; height: 80px; font-size: 28px;">
                         {{ application.applicant_name|slice:":2"|upper }}
                     </div>
                     <h4 class="mb-1">{{ application.applicant_name }}</h4>
                     <span class="badge badge-{{ application.status }}">{{ application.get_status_display }}</span>
                 </div>
-                
+
                 <hr>
-                
+
                 <div class="mb-3">
                     <small class="text-muted d-block"><i class="bi bi-envelope me-1"></i>Email</small>
                     <span>{{ application.email }}</span>
@@ -34,9 +35,9 @@
                     <span>{{ application.date_of_birth|date:"F d, Y" }}</span>
                 </div>
                 {% endif %}
-                
+
                 <hr>
-                
+
                 <div class="mb-3">
                     <small class="text-muted d-block"><i class="bi bi-briefcase me-1"></i>Applied For</small>
                     <span class="fw-medium">{{ application.job.title }}</span>
@@ -46,7 +47,7 @@
                     <small class="text-muted d-block"><i class="bi bi-calendar-check me-1"></i>Applied On</small>
                     <span>{{ application.applied_date|date:"F d, Y" }}</span>
                 </div>
-                
+
                 {% if application.resume %}
                 <hr>
                 <a href="{{ application.resume.url }}" class="btn btn-outline-primary w-100" target="_blank">
@@ -55,7 +56,7 @@
                 {% endif %}
             </div>
         </div>
-        
+
         <!-- Update Status Form -->
         <div class="card mt-4">
             <div class="card-header">
@@ -83,7 +84,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Application Details -->
     <div class="col-lg-8">
         <!-- Professional Details -->
@@ -105,12 +106,13 @@
                     </div>
                     <div class="col-md-6">
                         <small class="text-muted d-block">Experience</small>
-                        <span class="fw-medium">{{ application.experience_years }} year{{ application.experience_years|pluralize }}</span>
+                        <span class="fw-medium">{{ application.experience_years }} year{{
+                            application.experience_years|pluralize }}</span>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Current Employment -->
         {% if application.current_employer or application.current_designation %}
         <div class="card mb-4">
@@ -133,7 +135,7 @@
             </div>
         </div>
         {% endif %}
-        
+
         <!-- Cover Letter -->
         {% if application.cover_letter %}
         <div class="card mb-4">
@@ -147,7 +149,7 @@
             </div>
         </div>
         {% endif %}
-        
+
         <!-- Interview Notes -->
         {% if application.interview_notes %}
         <div class="card mb-4">
@@ -168,7 +170,7 @@
             </div>
         </div>
         {% endif %}
-        
+
         <!-- Job Requirements Comparison -->
         <div class="card">
             <div class="card-header">
@@ -185,7 +187,8 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="p-3 {% if application.experience_years >= application.job.min_experience %}bg-success bg-opacity-10{% else %}bg-warning bg-opacity-10{% endif %} rounded">
+                        <div
+                            class="p-3 {% if application.experience_years >= application.job.min_experience %}bg-success-subtle{% else %}bg-warning-subtle{% endif %} rounded">
                             <small class="text-muted d-block mb-1">Applicant Experience</small>
                             <span class="fw-medium">{{ application.experience_years }} years</span>
                             {% if application.experience_years >= application.job.min_experience %}

@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@
     <link href="{% static 'hospital_hr/css/style.css' %}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
     <div class="app-wrapper">
         <!-- Sidebar -->
@@ -24,42 +26,48 @@
                     </div>
                 </div>
             </div>
-            
+
             <nav class="sidebar-nav">
                 <ul class="nav-list">
                     <li class="nav-item">
-                        <a href="{% url 'hospital_hr:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <a href="{% url 'hospital_hr:dashboard' %}"
+                            class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                             <i class="bi bi-grid-1x2-fill"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     {% if request.user.role == 'admin' or request.user.role == 'hr' %}
                     <li class="nav-item">
-                        <a href="{% url 'hospital_hr:employee_list' %}" class="nav-link {% if 'employee' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'hospital_hr:employee_list' %}"
+                            class="nav-link {% if 'employee' in request.resolver_match.url_name %}active{% endif %}">
                             <i class="bi bi-people-fill"></i>
                             <span>Employees</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url 'hospital_hr:department_list' %}" class="nav-link {% if 'department' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'hospital_hr:department_list' %}"
+                            class="nav-link {% if 'department' in request.resolver_match.url_name %}active{% endif %}">
                             <i class="bi bi-building"></i>
                             <span>Departments</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url 'hospital_hr:job_list' %}" class="nav-link {% if 'job' in request.resolver_match.url_name and 'public' not in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'hospital_hr:job_list' %}"
+                            class="nav-link {% if 'job' in request.resolver_match.url_name and 'public' not in request.resolver_match.url_name %}active{% endif %}">
                             <i class="bi bi-briefcase-fill"></i>
                             <span>Recruitment</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url 'hospital_hr:application_list' %}" class="nav-link {% if 'application' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'hospital_hr:application_list' %}"
+                            class="nav-link {% if 'application' in request.resolver_match.url_name %}active{% endif %}">
                             <i class="bi bi-file-earmark-person-fill"></i>
                             <span>Applications</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{% url 'hospital_hr:leave_request_list' %}" class="nav-link {% if 'leave_request_list' in request.resolver_match.url_name or 'leave_request_approve' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'hospital_hr:leave_request_list' %}"
+                            class="nav-link {% if 'leave_request_list' in request.resolver_match.url_name or 'leave_request_approve' in request.resolver_match.url_name %}active{% endif %}">
                             <i class="bi bi-calendar-check-fill"></i>
                             <span>Leave Requests</span>
                         </a>
@@ -67,7 +75,8 @@
                     {% endif %}
                     {% if request.user.role == 'staff' or request.user.role == 'dept_head' %}
                     <li class="nav-item">
-                        <a href="#" class="nav-link" data-modal-url="{% url 'hospital_hr:leave_request_create' %}" data-modal-title="Request Leave" data-modal-size="lg">
+                        <a href="#" class="nav-link" data-modal-url="{% url 'hospital_hr:leave_request_create' %}"
+                            data-modal-title="Request Leave" data-modal-size="lg">
                             <i class="bi bi-calendar-plus-fill"></i>
                             <span>Request Leave</span>
                         </a>
@@ -75,16 +84,17 @@
                     {% endif %}
                     {% if request.user.role == 'dept_head' %}
                     <li class="nav-item">
-                        <a href="{% url 'hospital_hr:leave_request_list' %}" class="nav-link {% if 'leave_request_list' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'hospital_hr:leave_request_list' %}"
+                            class="nav-link {% if 'leave_request_list' in request.resolver_match.url_name %}active{% endif %}">
                             <i class="bi bi-calendar-check-fill"></i>
                             <span>Leave Approvals</span>
                         </a>
                     </li>
                     {% endif %}
                 </ul>
-                
+
                 <div class="nav-divider"></div>
-                
+
                 <ul class="nav-list">
                     <li class="nav-item">
                         <a href="{% url 'hospital_hr:job_public_list' %}" class="nav-link">
@@ -94,7 +104,7 @@
                     </li>
                 </ul>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <a href="{% url 'hospital_hr:logout' %}" class="logout-btn">
                     <i class="bi bi-box-arrow-left"></i>
@@ -102,7 +112,7 @@
                 </a>
             </div>
         </aside>
-        
+
         <!-- Main Content -->
         <main class="main-content">
             <!-- Top Navigation -->
@@ -120,39 +130,44 @@
                                 <i class="bi bi-person-fill"></i>
                             </div>
                             <div class="user-info">
-                                <span class="user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+                                <span class="user-name">{{ request.user.get_full_name|default:request.user.username
+                                    }}</span>
                                 <span class="user-role">{{ request.user.get_role_display }}</span>
                             </div>
                             <i class="bi bi-chevron-down"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="{% url 'hospital_hr:logout' %}"><i class="bi bi-box-arrow-left me-2"></i>Logout</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'hospital_hr:logout' %}"><i
+                                        class="bi bi-box-arrow-left me-2"></i>Logout</a></li>
                         </ul>
                     </div>
                 </div>
             </header>
-            
+
             <!-- Page Content -->
             <div class="page-content">
                 {% if messages %}
                 <div class="messages-container">
                     {% for message in messages %}
                     <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-circle-fill{% elif message.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                        <i
+                            class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-circle-fill{% elif message.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                     {% endfor %}
                 </div>
                 {% endif %}
-                
+
                 {% block content %}{% endblock %}
             </div>
         </main>
     </div>
-    
+
     <!-- Global Modal Container -->
     <div class="modal fade" id="globalModal" tabindex="-1" aria-labelledby="globalModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
@@ -172,13 +187,14 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body text-center py-4">
-                    <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                    <div class="rounded-circle bg-danger-subtle d-inline-flex align-items-center justify-content-center mb-3"
+                        style="width: 64px; height: 64px;">
                         <i class="bi bi-exclamation-triangle fs-3"></i>
                     </div>
                     <h5 id="deleteModalLabel">Confirm Delete</h5>
@@ -191,9 +207,10 @@
             </div>
         </div>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'hospital_hr/js/dashboard.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>
