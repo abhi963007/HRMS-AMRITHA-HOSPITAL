@@ -83,6 +83,9 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-3">
+                        <a href="{% url 'hospital_hr:attendance_my_view' %}" class="btn btn-success">
+                            <i class="bi bi-clock me-2"></i>Check In / Check Out
+                        </a>
                         <button type="button" class="btn btn-primary" data-modal-url="{% url 'hospital_hr:leave_request_create' %}" data-modal-title="Request Leave" data-modal-size="lg">
                             <i class="bi bi-calendar-plus me-2"></i>Request Leave
                         </button>

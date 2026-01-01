@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import User, Department, Employee, Job, Application, LeaveRequest
+from .models import User, Department, Employee, Job, Application, LeaveRequest, Attendance
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -177,3 +177,55 @@ class LeaveApprovalForm(forms.ModelForm):
             ]),
             'rejection_reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+
+class AttendanceForm(forms.ModelForm):
+    class Meta:
+        model = Attendance
+        fields = ['status', 'shift', 'check_in_time', 'check_out_time', 'notes']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'shift': forms.Select(attrs={'class': 'form-control'}),
+            'check_in_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'check_out_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Optional notes...'}),
+        }
+
+
+class AttendanceFilterForm(forms.Form):
+    date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.filter(is_active=True),
+        required=False,
+        empty_label="All Departments",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    status = forms.ChoiceField(
+        choices=[('', 'All Status')] + list(Attendance.STATUS_CHOICES),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+
+class AttendanceReportForm(forms.Form):
+    start_date = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    end_date = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.filter(is_active=True),
+        required=False,
+        empty_label="All Departments",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    employee = forms.ModelChoiceField(
+        queryset=Employee.objects.filter(status='active'),
+        required=False,
+        empty_label="All Employees",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )

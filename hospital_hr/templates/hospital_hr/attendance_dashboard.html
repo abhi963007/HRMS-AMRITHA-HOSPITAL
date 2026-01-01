@@ -1,0 +1,282 @@
+{% extends 'hospital_hr/base.html' %}
+{% load static %}
+
+{% block title %}Attendance Dashboard - Amrita Hospital HRMS{% endblock %}
+
+{% block page_title %}Attendance Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Date & Filter Controls -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Select Date</label>
+                    <input type="date" name="date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Department</label>
+                    <select name="department" class="form-control">
+                        <option value="">All Departments</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}" {% if selected_department == dept.id|stringformat:"i" %}selected{% endif %}>{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-filter me-1"></i> Filter
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'hospital_hr:attendance_report' %}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'hospital_hr:attendance_export_csv' %}?start_date={{ selected_date|date:'Y-m-d' }}&end_date={{ selected_date|date:'Y-m-d' }}" class="btn btn-outline-success w-100">
+                        <i class="bi bi-download me-1"></i> Export
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-2">
+            <div class="card border-0 bg-primary text-white">
+                <div class="card-body text-center py-3">
+                    <h3 class="mb-0">{{ stats.total }}</h3>
+                    <small>Total Staff</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 bg-success text-white">
+                <div class="card-body text-center py-3">
+                    <h3 class="mb-0">{{ stats.present }}</h3>
+                    <small>Present</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 bg-danger text-white">
+                <div class="card-body text-center py-3">
+                    <h3 class="mb-0">{{ stats.absent }}</h3>
+                    <small>Absent</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 bg-warning text-dark">
+                <div class="card-body text-center py-3">
+                    <h3 class="mb-0">{{ stats.late }}</h3>
+                    <small>Late</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 bg-info text-white">
+                <div class="card-body text-center py-3">
+                    <h3 class="mb-0">{{ stats.half_day }}</h3>
+                    <small>Half Day</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card border-0 bg-secondary text-white">
+                <div class="card-body text-center py-3">
+                    <h3 class="mb-0">{{ stats.unmarked }}</h3>
+                    <small>Unmarked</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="card mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Employee Attendance - {{ selected_date|date:"D, M d, Y" }}</h5>
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-outline-success" onclick="bulkMarkAll('present')">
+                    <i class="bi bi-check-all"></i> Mark All Present
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="bulkMarkAll('absent')">
+                    <i class="bi bi-x-circle"></i> Mark All Absent
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <form id="bulkAttendanceForm" method="post" action="{% url 'hospital_hr:attendance_bulk_mark' %}">
+                {% csrf_token %}
+                <input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+                <input type="hidden" name="status" id="bulkStatus" value="present">
+                <input type="hidden" name="shift" id="bulkShift" value="general">
+                
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="40">
+                                    <input type="checkbox" class="form-check-input" id="selectAll" onclick="toggleSelectAll()">
+                                </th>
+                                <th>Employee</th>
+                                <th>Department</th>
+                                <th>Shift</th>
+                                <th>Status</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th width="120">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in employee_attendance %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="form-check-input employee-checkbox" name="employee_ids" value="{{ item.employee.id }}">
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-primary-subtle rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-person text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <strong>{{ item.employee.get_full_name }}</strong>
+                                            <br><small class="text-muted">{{ item.employee.employee_id }} - {{ item.employee.designation }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ item.employee.department.name|default:"-" }}</td>
+                                <td>
+                                    {% if item.attendance %}
+                                        {{ item.attendance.get_shift_display }}
+                                    {% else %}
+                                        {{ item.employee.get_shift_display }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.attendance %}
+                                        {% if item.attendance.status == 'present' %}
+                                            <span class="badge bg-success">Present</span>
+                                        {% elif item.attendance.status == 'absent' %}
+                                            <span class="badge bg-danger">Absent</span>
+                                        {% elif item.attendance.status == 'late' %}
+                                            <span class="badge bg-warning text-dark">Late</span>
+                                        {% elif item.attendance.status == 'half_day' %}
+                                            <span class="badge bg-info">Half Day</span>
+                                        {% elif item.attendance.status == 'on_leave' %}
+                                            <span class="badge bg-secondary">On Leave</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">Not Marked</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.attendance and item.attendance.check_in_time %}
+                                        {{ item.attendance.check_in_time|time:"H:i" }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.attendance and item.attendance.check_out_time %}
+                                        {{ item.attendance.check_out_time|time:"H:i" }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#attendanceModal"
+                                            data-employee-id="{{ item.employee.id }}"
+                                            data-employee-name="{{ item.employee.get_full_name }}"
+                                            data-date="{{ selected_date|date:'Y-m-d' }}">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    No employees found. Try adjusting your filters.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Edit Modal -->
+<div class="modal fade" id="attendanceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-calendar-check me-2"></i>Mark Attendance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="attendanceModalBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleSelectAll() {
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.employee-checkbox');
+        checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    }
+    
+    function bulkMarkAll(status) {
+        const checkboxes = document.querySelectorAll('.employee-checkbox:checked');
+        if (checkboxes.length === 0) {
+            alert('Please select at least one employee');
+            return;
+        }
+        
+        document.getElementById('bulkStatus').value = status;
+        if (confirm(`Mark ${checkboxes.length} employee(s) as ${status}?`)) {
+            document.getElementById('bulkAttendanceForm').submit();
+        }
+    }
+    
+    // Load attendance form in modal
+    const attendanceModal = document.getElementById('attendanceModal');
+    if (attendanceModal) {
+        attendanceModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const employeeId = button.getAttribute('data-employee-id');
+            const employeeName = button.getAttribute('data-employee-name');
+            const date = button.getAttribute('data-date');
+            
+            const modalBody = document.getElementById('attendanceModalBody');
+            modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+            
+            fetch(`{% url 'hospital_hr:attendance_mark' 0 %}`.replace('0', employeeId) + `?date=${date}`)
+                .then(response => response.text())
+                .then(html => {
+                    modalBody.innerHTML = html;
+                })
+                .catch(error => {
+                    modalBody.innerHTML = '<div class="alert alert-danger">Error loading form</div>';
+                });
+        });
+    }
+</script>
+{% endblock %}

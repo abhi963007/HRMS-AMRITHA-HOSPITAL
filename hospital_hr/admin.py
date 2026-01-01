@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Department, Employee, Job, Application, LeaveRequest
+from .models import User, Department, Employee, Job, Application, LeaveRequest, Attendance
 
 
 @admin.register(User)
@@ -163,6 +163,31 @@ class LeaveRequestAdmin(admin.ModelAdmin):
         }),
         ('Approval', {
             'fields': ('status', 'approved_by', 'approval_date', 'rejection_reason'),
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+
+
+@admin.register(Attendance)
+class AttendanceAdmin(admin.ModelAdmin):
+    list_display = ['date', 'employee', 'department', 'shift', 'status', 'check_in_time', 'check_out_time', 'marked_by']
+    list_filter = ['status', 'shift', 'department', 'date']
+    search_fields = ['employee__user__first_name', 'employee__user__last_name', 'employee__employee_id']
+    readonly_fields = ['created_at', 'updated_at']
+    date_hierarchy = 'date'
+    
+    fieldsets = (
+        ('Employee & Date', {
+            'fields': ('employee', 'department', 'date'),
+        }),
+        ('Attendance Details', {
+            'fields': ('shift', 'status', 'check_in_time', 'check_out_time'),
+        }),
+        ('Additional Info', {
+            'fields': ('notes', 'marked_by'),
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

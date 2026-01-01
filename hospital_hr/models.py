@@ -284,3 +284,53 @@ class LeaveRequest(models.Model):
     
     def __str__(self):
         return f"{self.employee.get_full_name()} - {self.leave_type} ({self.start_date} to {self.end_date})"
+
+
+class Attendance(models.Model):
+    STATUS_CHOICES = [
+        ('present', 'Present'),
+        ('absent', 'Absent'),
+        ('late', 'Late'),
+        ('half_day', 'Half Day'),
+        ('on_leave', 'On Leave'),
+    ]
+    
+    SHIFT_CHOICES = [
+        ('morning', 'Morning (6 AM - 2 PM)'),
+        ('afternoon', 'Afternoon (2 PM - 10 PM)'),
+        ('night', 'Night (10 PM - 6 AM)'),
+        ('general', 'General (9 AM - 5 PM)'),
+        ('rotating', 'Rotating Shifts'),
+    ]
+    
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='attendance_records')
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='attendance_records')
+    date = models.DateField()
+    shift = models.CharField(max_length=20, choices=SHIFT_CHOICES, default='general')
+    check_in_time = models.TimeField(null=True, blank=True)
+    check_out_time = models.TimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='present')
+    marked_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='marked_attendance')
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-date', 'employee__user__first_name']
+        unique_together = ['employee', 'date']
+        verbose_name_plural = 'Attendance Records'
+    
+    def __str__(self):
+        return f"{self.employee.get_full_name()} - {self.date} ({self.get_status_display()})"
+    
+    def get_working_hours(self):
+        if self.check_in_time and self.check_out_time:
+            from datetime import datetime, timedelta
+            check_in = datetime.combine(self.date, self.check_in_time)
+            check_out = datetime.combine(self.date, self.check_out_time)
+            if check_out < check_in:
+                check_out += timedelta(days=1)
+            diff = check_out - check_in
+            hours = diff.total_seconds() / 3600
+            return round(hours, 2)
+        return 0

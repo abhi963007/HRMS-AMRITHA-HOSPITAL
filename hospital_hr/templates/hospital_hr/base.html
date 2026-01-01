@@ -68,6 +68,13 @@
                             <span>Leave Requests</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{% url 'hospital_hr:attendance_dashboard' %}"
+                            class="nav-link {% if 'attendance' in request.resolver_match.url_name and 'my' not in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="bi bi-calendar2-check-fill"></i>
+                            <span>Attendance</span>
+                        </a>
+                    </li>
                     {% endif %}
                     {% if request.user.role == 'staff' or request.user.role == 'dept_head' %}
                     <li class="nav-item">
@@ -86,7 +93,21 @@
                             <span>Leave Approvals</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{% url 'hospital_hr:attendance_department' %}"
+                            class="nav-link {% if 'attendance_department' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="bi bi-calendar2-check-fill"></i>
+                            <span>Dept Attendance</span>
+                        </a>
+                    </li>
                     {% endif %}
+                    <li class="nav-item">
+                        <a href="{% url 'hospital_hr:attendance_my_view' %}"
+                            class="nav-link {% if 'attendance_my' in request.resolver_match.url_name %}active{% endif %}">
+                            <i class="bi bi-person-check-fill"></i>
+                            <span>My Attendance</span>
+                        </a>
+                    </li>
                 </ul>
 
                 <div class="nav-divider"></div>
