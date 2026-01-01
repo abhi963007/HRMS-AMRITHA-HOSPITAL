@@ -24,17 +24,16 @@
                 <label class="form-label small text-muted">Status</label>
                 <select name="status" class="form-select form-select-sm">
                     <option value="">All Status</option>
-                    <option value="submitted" {% if request.GET.status=='submitted' %}selected{% endif %}>Submitted
+                    <option value="submitted" {% if request.GET.status == 'submitted' %}selected{% endif %}>Submitted
                     </option>
-                    <option value="under_review" {% if request.GET.status=='under_review' %}selected{% endif %}>Under
+                    <option value="under_review" {% if request.GET.status == 'under_review' %}selected{% endif %}>Under
                         Review</option>
-                    <option value="shortlisted" {% if request.GET.status=='shortlisted' %}selected{% endif %}>
+                    <option value="shortlisted" {% if request.GET.status == 'shortlisted' %}selected{% endif %}>
                         Shortlisted</option>
-                    <option value="interview_scheduled" {% if request.GET.status=='interview_scheduled' %}selected{%
-                        endif %}>Interview Scheduled</option>
-                    <option value="selected" {% if request.GET.status=='selected' %}selected{% endif %}>Selected
+                    <option value="interview_scheduled" {% if request.GET.status == 'interview_scheduled' %}selected{% endif %}>Interview Scheduled</option>
+                    <option value="selected" {% if request.GET.status == 'selected' %}selected{% endif %}>Selected
                     </option>
-                    <option value="rejected" {% if request.GET.status=='rejected' %}selected{% endif %}>Rejected
+                    <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected
                     </option>
                 </select>
             </div>
@@ -43,8 +42,7 @@
                 <select name="job" class="form-select form-select-sm">
                     <option value="">All Positions</option>
                     {% for job in jobs %}
-                    <option value="{{ job.pk }}" {% if request.GET.job==job.pk|stringformat:"i" %}selected{% endif %}>{{
-                        job.title }}</option>
+                    <option value="{{ job.pk }}" {% if request.GET.job == job.pk|stringformat:"i" %}selected{% endif %}>{{ job.title }}</option>
                     {% endfor %}
                 </select>
             </div>
